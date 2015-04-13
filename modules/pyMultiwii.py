@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2014 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "1.5"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -18,7 +18,7 @@ import serial, time, struct
 class MultiWii:
 
     """Multiwii Serial Protocol message ID"""
-    """ notice: just attitude, rc channels and raw imu are implemented at the moment """
+    """ notice: just attitude, rc channels and raw imu, set raw rc are implemented at the moment """
     IDENT = 100
     STATUS = 101
     RAW_IMU = 102
@@ -112,6 +112,54 @@ class MultiWii:
             quit()
         return b
 
+    """Function for sending a command to the board and receive attitude"""
+    """
+    Modification required to Protocol.cpp in evaluateCommand:
+
+    case MSP_SET_RAW_RC:
+      s_struct_w((uint8_t*)&rcSerial,16);
+      rcSerialCount = 50; // 1s transition 
+      s_struct((uint8_t*)&att,6);
+      break;
+
+    """
+    def sendCMDreceiveATT(self, data_length, code, data):
+        checksum = 0
+        #data_length = arguments[0]
+        #code = arguments[1]
+        #data = arguments[2]
+        total_data = ['$', 'M', '<', data_length, code] + data
+        for i in struct.pack('<2B%dh' % len(data), *total_data[3:len(total_data)]):
+            checksum = checksum ^ ord(i)
+        total_data.append(checksum)
+        try:
+            start = time.time()
+            b = None
+            b = self.ser.write(struct.pack('<3c2B%dhB' % len(data), *total_data))
+            while True:
+                header = self.ser.read()
+                if header == '$':
+                    header = header+self.ser.read(2)
+                    break
+            datalength = struct.unpack('<b', self.ser.read())[0]
+            code = struct.unpack('<b', self.ser.read())
+            data = self.ser.read(datalength)
+            temp = struct.unpack('<'+'h'*(datalength/2),data)
+            self.ser.flushInput()
+            self.ser.flushOutput()
+            elapsed = time.time() - start
+            #print code
+            #print temp
+            self.attitude['angx']=float(temp[0]/10.0)
+            self.attitude['angy']=float(temp[1]/10.0)
+            self.attitude['heading']=float(temp[2])
+            self.attitude['elapsed']=round(elapsed,3)
+            self.attitude['timestamp']="%0.2f" % (time.time(),) 
+            return self.attitude
+        except Exception, error:
+            print "Error in sendCMDreceiveATT: "+str(error)
+        return b
+
     """Function to receive a data packet from the board"""
     def getData(self, cmd):
         try:
@@ -156,10 +204,60 @@ class MultiWii:
             else:
                 return "No return error!"
         except Exception, error:
-            print error
+            #print error
+            pass
 
+    """Function to receive a data packet from the board. Note: easier to use on threads"""
+    def getDataInf(self, cmd):
+        while True:
+            try:
+                start = time.clock()
+                self.sendCMD(0,cmd,[])
+                while True:
+                    header = self.ser.read()
+                    if header == '$':
+                        header = header+self.ser.read(2)
+                        break
+                datalength = struct.unpack('<b', self.ser.read())[0]
+                code = struct.unpack('<b', self.ser.read())
+                data = self.ser.read(datalength)
+                temp = struct.unpack('<'+'h'*(datalength/2),data)
+                elapsed = time.clock() - start
+                self.ser.flushInput()
+                self.ser.flushOutput()
+                if cmd == MultiWii.ATTITUDE:
+                    self.attitude['angx']=float(temp[0]/10.0)
+                    self.attitude['angy']=float(temp[1]/10.0)
+                    self.attitude['heading']=float(temp[2])
+                    self.attitude['elapsed']="%0.3f" % (elapsed,)
+                    self.attitude['timestamp']="%0.2f" % (time.time(),)
+                elif cmd == MultiWii.RC:
+                    self.rcChannels['roll']=temp[0]
+                    self.rcChannels['pitch']=temp[1]
+                    self.rcChannels['yaw']=temp[2]
+                    self.rcChannels['throttle']=temp[3]
+                    self.rcChannels['elapsed']="%0.3f" % (elapsed,)
+                    self.rcChannels['timestamp']="%0.2f" % (time.time(),)
+                elif cmd == MultiWii.RAW_IMU:
+                    self.rawIMU['ax']=float(temp[0])
+                    self.rawIMU['ay']=float(temp[1])
+                    self.rawIMU['az']=float(temp[2])
+                    self.rawIMU['gx']=float(temp[3])
+                    self.rawIMU['gy']=float(temp[4])
+                    self.rawIMU['gz']=float(temp[5])
+                    self.rawIMU['elapsed']="%0.3f" % (elapsed,)
+                    self.rawIMU['timestamp']="%0.2f" % (time.time(),)
+                elif cmd == MultiWii.MOTOR:
+                    self.motor['m1']=float(temp[0])
+                    self.motor['m2']=float(temp[1])
+                    self.motor['m3']=float(temp[2])
+                    self.motor['m4']=float(temp[3])
+                    self.motor['elapsed']="%0.3f" % (elapsed,)
+                    self.motor['timestamp']="%0.2f" % (time.time(),)
+            except Exception, error:
+                pass
 
-    """Function to ask for 2 fixed cmds, attitude and rc channels, and receive it"""
+    """Function to ask for 2 fixed cmds, attitude and rc channels, and receive them. Note: is a bit slower than others"""
     def getData2cmd(self, cmd):
         try:
             start = time.time()
