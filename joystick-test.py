@@ -11,10 +11,9 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-
-import threading
-from modules.pyMultiwii import MultiWii
-import modules.UDPserver 
+import time, threading
+from DroneModules.pyMultiwii import MultiWii
+import DroneModules.UDPserver 
 
 # RC commnads to be sent to the MultiWii 
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
@@ -25,25 +24,33 @@ vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
 
 # Function to update commands and attitude to be called by a thread
 def updateCMDATT():
-    global vehicle, rcCMD, UDPserver
+    global vehicle, rcCMD
     try:
         while True:
-            rcCMD[0] = modules.UDPserver.message[0]
-            rcCMD[1] = modules.UDPserver.message[1]
-            rcCMD[2] = modules.UDPserver.message[2]
-            rcCMD[3] = modules.UDPserver.message[3]
-            vehicle.sendCMDreceiveATT(16,MultiWii.SET_RAW_RC,rcCMD)
-            print vehicle.attitude
-            print modules.UDPserver.message
+            if DroneModules.UDPserver.datagramRecieved:
+                rcCMD[0] = DroneModules.UDPserver.message[0]
+                rcCMD[1] = DroneModules.UDPserver.message[1]
+                rcCMD[2] = DroneModules.UDPserver.message[2]
+                rcCMD[3] = DroneModules.UDPserver.message[3]
+                vehicle.sendCMDreceiveATT(16,MultiWii.SET_RAW_RC,rcCMD)
+                #print vehicle.attitude
+                #print modules.UDPserver.message
+            else: 
+                # test what happens to the vehicle when UDP is false... midflight.
+                print "Waiting for UDP data..."
+                time.sleep(1)
     except Exception,error:
         print "Error on updateCMDATT thread: "+str(error)
-
 
 if __name__ == "__main__":
     try:
         vehicleThread = threading.Thread(target=updateCMDATT)
+        vehicleThread.daemon=True
         vehicleThread.start()
-        modules.UDPserver.startTwisted()
+        DroneModules.UDPserver.startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)
-        #vehicle.ser.close()
+        vehicle.ser.close()
+    except KeyboardInterrupt:
+        print "Keyboard Interrupt, exiting."
+        exit()

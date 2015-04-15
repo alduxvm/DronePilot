@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""UDPserver.py: Handles UDP SocketServer communications for reading a Optitrack Motion Capture System."""
+"""UDPserver.py: Handles UDP twisted communications for reading a Optitrack Motion Capture System."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2014 Aldux.net"
@@ -15,10 +15,18 @@ __status__ = "Development"
 import struct, time, socket
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
+from twisted.internet import task
 
-message = [1500,1500,1500,1000];
-UDPtimestamp = 0
+UDPport = 51001
+message = [1500,1500,1500,1000]
+datagramRecieved = False
 
+def timeout():
+    global datagramRecieved, message
+    if not datagramRecieved:
+        #print "No UDP present"
+        message = [1500,1500,1500,1000]
+    datagramRecieved = False
 
 class twistedUDP(DatagramProtocol):
 
@@ -30,10 +38,11 @@ class twistedUDP(DatagramProtocol):
         #UDPmess.insert(0,time.time())
         #self.sendMSG(cfg.line,(cfg.UDPip, cfg.UDPportOut))
         #self.sendMSG("1",(cfg.UDPip, cfg.UDPportOut))
-
-    def sendMSG(self, data, (host, port)):
-         self.transport.write(data, (host, port))
+    #def sendMSG(self, data, (host, port)):
+    #     self.transport.write(data, (host, port))
 
 def startTwisted():
-    reactor.listenUDP(51001, twistedUDP())
+    l = task.LoopingCall(timeout)
+    l.start(1.0) # Check for disconnection each second and send neutral commands
+    reactor.listenUDP(UDPport, twistedUDP())
     reactor.run()
