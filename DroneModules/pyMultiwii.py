@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""multiwii.py: Handles Multiwii Serial Protocol."""
+"""pyMultiwii.py: Handles Multiwii Serial Protocol."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2014 Aldux.net"
@@ -148,8 +148,6 @@ class MultiWii:
             self.ser.flushInput()
             self.ser.flushOutput()
             elapsed = time.time() - start
-            #print code
-            #print temp
             self.attitude['angx']=float(temp[0]/10.0)
             self.attitude['angy']=float(temp[1]/10.0)
             self.attitude['heading']=float(temp[2])
@@ -157,8 +155,8 @@ class MultiWii:
             self.attitude['timestamp']="%0.2f" % (time.time(),) 
             return self.attitude
         except Exception, error:
-            print "Error in sendCMDreceiveATT: "+str(error)
-        #return b
+            #print "Error in sendCMDreceiveATT: "+str(error)
+            pass
 
     """Function to receive a data packet from the board"""
     def getData(self, cmd):

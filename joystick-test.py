@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-"""joystick-test.py: Send commands coming from a Joystick via UDP using a Ground station with Matlab."""
+""" joystick-test.py: Send commands coming from a Joystick via UDP using a Ground station with Matlab."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
