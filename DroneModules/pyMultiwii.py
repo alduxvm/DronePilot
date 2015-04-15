@@ -158,7 +158,7 @@ class MultiWii:
             return self.attitude
         except Exception, error:
             print "Error in sendCMDreceiveATT: "+str(error)
-        return b
+        #return b
 
     """Function to receive a data packet from the board"""
     def getData(self, cmd):

@@ -19,22 +19,25 @@ from twisted.internet import task
 
 UDPport = 51001
 message = [1500,1500,1500,1000]
-datagramRecieved = False
+active = False
 
 def timeout():
-    global datagramRecieved, message
-    if not datagramRecieved:
-        #print "No UDP present"
+    global active, message
+    if not active:
+        # There is no UDP data, so give message "safe" commands
         message = [1500,1500,1500,1000]
-    datagramRecieved = False
+    active = False
 
 class twistedUDP(DatagramProtocol):
 
     def datagramReceived(self, data, (host, port)):
-        global message
+        global message, active
+        active = True
+        #self.timeout.cancel()
         numOfValues = len(data) / 8
         mess=struct.unpack('>' + 'd' * numOfValues, data)
         message = [ round(element,4) for element in mess ]
+        #print message
         #UDPmess.insert(0,time.time())
         #self.sendMSG(cfg.line,(cfg.UDPip, cfg.UDPportOut))
         #self.sendMSG("1",(cfg.UDPip, cfg.UDPportOut))
@@ -43,6 +46,6 @@ class twistedUDP(DatagramProtocol):
 
 def startTwisted():
     l = task.LoopingCall(timeout)
-    l.start(1.0) # Check for disconnection each second and send neutral commands
+    l.start(0.5) # Check for disconnection each 0.1 and send neutral commands
     reactor.listenUDP(UDPport, twistedUDP())
     reactor.run()
