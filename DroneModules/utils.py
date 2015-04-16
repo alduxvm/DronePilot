@@ -24,3 +24,7 @@ def toPWM(value):
 """ Function to map a value to another """
 def mapping(value,iMin,iMax,oMin,oMax):
     return round((value - iMin) * (oMax - oMin) / (iMax - iMin) + oMin, 0)
+
+""" Function to limit a value to specific range """
+def limit(n, minn, maxn):
+    return max(min(maxn, n), minn)

@@ -50,7 +50,8 @@ pitchPID2 = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
 
 # Function to update position control, to be called by a thread
 def hover():
-    global vehicle, rcCMD, rollPID, pitchPID
+    global vehicle, rcCMD, rollPID, pitchPID, rollPID2, pitchPID2
+    global desiredPos, currentPos
     try:
         while True:
             if udp.active:
@@ -86,10 +87,16 @@ def hover():
                 desiredRoll2  = utils.toPWM(math.degrees( (rPIDvalue2 * sinYaw - pPIDvalue2 * cosYaw) * (1 / utils.g) ))
                 desiredPitch2 = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ))
 
-                print "PID 1: x = %d dRoll = %d | y = %d dPitch = %d" % (currentPos['x'],desiredRoll,currentPos['x'],desiredPitch)
-                print "PID 2: x = %d dRoll = %d | y = %d dPitch = %d\n" % (currentPos['x'],desiredRoll2,currentPos['x'],desiredPitch2)
+                print "PID 1: x = %d dRoll = %d | y = %d dPitch = %d" % (currentPos['x'],desiredRoll,currentPos['y'],desiredPitch)
+                print "PID 2: x = %d dRoll = %d | y = %d dPitch = %d\n" % (currentPos['y'],desiredRoll2,currentPos['y'],desiredPitch2)
+
+                rcCMD[0] = desiredRoll
+                rcCMD[1] = desiredPitch
+
+                rcCMD = [utils.limit(n,1000,2000) for n in rcCMD]
+                
                 vehicle.sendCMDreceiveATT(8,MultiWii.SET_RAW_RC,rcCMD)
-                time.sleep(1)
+                #time.sleep(1)
 
     except Exception,error:
         print "Error on position_control thread: "+str(error)
