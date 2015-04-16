@@ -85,5 +85,9 @@ class pid(object):
 # run the main routine if this is file is called from the command line
 if __name__ == "__main__":
     # create pid object P, I, D, IMAX
-    test_pid = pid(1.0, 0.5, 0.01, 50)
-    test_pid.main()
+    test_pid = pid(1.0, 0.5, 0.01, 10)
+    value = 50.0
+    for i in range (0, 100):
+        start = time.time()
+        p = test_pid.get_pid(value-i,0.001)
+        print "%d elapsed = %f error = %f" % (i,time.time()-start,p)

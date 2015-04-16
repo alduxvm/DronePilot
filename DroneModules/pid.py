@@ -11,12 +11,7 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 __downloaded__ = "http://code.activestate.com/recipes/577231-discrete-pid-controller/"
 
-#######	Example	#########
-#
-#p=PID(3.0,0.4,1.2)
-#p.setPoint(5.0)
-#while True:
-#     pid = p.update(measurement_value)
+import time
 
 class PID:
 	"""
@@ -97,3 +92,13 @@ class PID:
 
 	def resetIntegrator(self):
 		self.Integrator=0
+
+if __name__ == "__main__":
+    # create pid object P, I, D, IMAX
+	p = PID(1.0, 0.5, 0.01, 0, 0, 10)
+	p.setPoint(50.0)
+	for i in range (0, 100):
+		start = time.time()
+		pid = p.update(i)
+		print "%d elapsed = %f error = %f" % (i,time.time()-start,pid)
+
