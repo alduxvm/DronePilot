@@ -11,22 +11,19 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 __downloaded__ = "http://code.activestate.com/recipes/577231-discrete-pid-controller/"
 
-
 #######	Example	#########
 #
 #p=PID(3.0,0.4,1.2)
 #p.setPoint(5.0)
 #while True:
 #     pid = p.update(measurement_value)
-#
-#
 
 class PID:
 	"""
 	Discrete PID control
 	"""
 
-	def __init__(self, P=2.0, I=0.0, D=1.0, Derivator=0, Integrator=0, Integrator_max=500, Integrator_min=-500):
+	def __init__(self, P=2.0, I=0.0, D=1.0, Derivator=0, Integrator=0, Integrator_max=100, Integrator_min=-100):
 
 		self.Kp=P
 		self.Ki=I
