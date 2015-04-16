@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""pyMultiwii.py: Handles Multiwii Serial Protocol."""
+"""multiwii.py: Handles Multiwii Serial Protocol."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2014 Aldux.net"
@@ -93,7 +93,6 @@ class MultiWii:
                     time.sleep(1)
         except Exception, error:
             print "\n\nError opening "+self.ser.port+" port.\n"+str(error)+"\n\n"
-            quit()
 
     """Function for sending a command to the board"""
     def sendCMD(self, data_length, code, data):
@@ -106,15 +105,13 @@ class MultiWii:
             b = None
             b = self.ser.write(struct.pack('<3c2B%dhB' % len(data), *total_data))
         except Exception, error:
-            print "\n\nError in sendCMD."
-            print "("+str(error)+")\n\n"
-            self.ser.close()
-            quit()
-        return b
+            #print "\n\nError in sendCMD."
+            #print "("+str(error)+")\n\n"
+            pass
 
     """Function for sending a command to the board and receive attitude"""
     """
-    Modification required to Protocol.cpp in evaluateCommand:
+    Modification required on Multiwii firmware to Protocol.cpp in evaluateCommand:
 
     case MSP_SET_RAW_RC:
       s_struct_w((uint8_t*)&rcSerial,16);
@@ -125,9 +122,6 @@ class MultiWii:
     """
     def sendCMDreceiveATT(self, data_length, code, data):
         checksum = 0
-        #data_length = arguments[0]
-        #code = arguments[1]
-        #data = arguments[2]
         total_data = ['$', 'M', '<', data_length, code] + data
         for i in struct.pack('<2B%dh' % len(data), *total_data[3:len(total_data)]):
             checksum = checksum ^ ord(i)
@@ -155,8 +149,40 @@ class MultiWii:
             self.attitude['timestamp']="%0.2f" % (time.time(),) 
             return self.attitude
         except Exception, error:
-            #print "Error in sendCMDreceiveATT: "+str(error)
+            #print "\n\nError in sendCMDreceiveATT."
+            #print "("+str(error)+")\n\n"
             pass
+
+    """Function to arm / disarm """
+    """
+    Modification required on Multiwii firmware to Protocol.cpp in evaluateCommand:
+
+    case MSP_SET_RAW_RC:
+      s_struct_w((uint8_t*)&rcSerial,16);
+      rcSerialCount = 50; // 1s transition 
+      s_struct((uint8_t*)&att,6);
+      break;
+
+    """
+    def arm(self):
+        timer = 0
+        start = time.time()
+        while timer < 0.5:
+            data = [1500,1500,2000,1000]
+            self.sendCMD(8,MultiWii.SET_RAW_RC,data)
+            time.sleep(0.05)
+            timer = timer + (time.time() - start)
+            start =  time.time()
+
+    def disarm(self):
+        timer = 0
+        start = time.time()
+        while timer < 0.5:
+            data = [1500,1500,1000,1000]
+            self.sendCMD(8,MultiWii.SET_RAW_RC,data)
+            time.sleep(0.05)
+            timer = timer + (time.time() - start)
+            start =  time.time()
 
     """Function to receive a data packet from the board"""
     def getData(self, cmd):

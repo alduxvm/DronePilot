@@ -21,7 +21,6 @@ __downloaded__ = "http://code.activestate.com/recipes/577231-discrete-pid-contro
 #
 #
 
-
 class PID:
 	"""
 	Discrete PID control

@@ -36,7 +36,7 @@ class twistedUDP(DatagramProtocol):
         #self.timeout.cancel()
         numOfValues = len(data) / 8
         mess=struct.unpack('>' + 'd' * numOfValues, data)
-        message = [ round(element,4) for element in mess ]
+        message = [ round(element,6) for element in mess ]
         #print message
         #UDPmess.insert(0,time.time())
         #self.sendMSG(cfg.line,(cfg.UDPip, cfg.UDPportOut))
