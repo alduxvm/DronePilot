@@ -94,3 +94,6 @@ class PID:
 
 	def getDerivator(self):
 		return self.Derivator
+
+	def resetIntegrator(self):
+		self.Integrator=0
