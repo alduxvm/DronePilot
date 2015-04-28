@@ -14,11 +14,15 @@ __status__ = "Development"
 g = 9.81 # m/s2 - gravity
 
 """ Function to map a value to another """
-def toPWM(value):
+def toPWM(value, option):
     iMin = -50
     iMax = 50
-    oMin = 1000
-    oMax = 2000
+    if option == 1: # Normal
+    	oMin = 1000
+    	oMax = 2000
+    elif option == -1: # Inverted
+    	oMin = 2000
+    	oMax = 1000
     return round((value - iMin) * (oMax - oMin) / (iMax - iMin) + oMin, 0)
 
 """ Function to map a value to another """

@@ -19,8 +19,8 @@ from DroneModules.pid import PID
 from DroneModules.pid2 import pid
 
 # MRUAV initialization
-vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
-#vehicle = MultiWii("/dev/ttyUSB0")
+#vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
+vehicle = MultiWii("/dev/ttyUSB0")
 
 # Ask for current attitude to initialize attitude values
 vehicle.getData(MultiWii.ATTITUDE)
@@ -36,18 +36,21 @@ rcCMD = [1500,1500,1500,1000]
 gains = {'kp':1.0, 'ki':0.5, 'kd':0.01, 'iMax':4}
 #gains = {'kp':1.0, 'ki':0.5, 'kd':0.01}
 # PID module 1
-rollPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
-rollPID.setPoint(desiredPos['x'])
-pitchPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
-pitchPID.setPoint(desiredPos['y'])
+#rollPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
+#rollPID.setPoint(desiredPos['x'])
+#pitchPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
+#pitchPID.setPoint(desiredPos['y'])
 # PID module 2
-rollPID2 = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
-pitchPID2 = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
+rollPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
+pitchPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
+desiredRoll = 1500
+desiredPitch = 1500
 
 # Function to update position control, to be called by a thread
 def control():
-    global rollPID, pitchPID, rollPID2, pitchPID2
+    global rollPID, pitchPID
     global desiredPos, currentPos
+    global desiredRoll, desiredPitch
     try:
         while True:
             if udp.active:
@@ -57,34 +60,33 @@ def control():
                 currentPos['z'] = udp.message[5]
                 #print udp.message
 
-                # PID update module 1 (we might need to invert x for y...)
-                rPIDvalue = rollPID.update(currentPos['x'])
-                pPIDvalue = pitchPID.update(currentPos['y'])
-
-                # PID update module 2 (we might need to invert x for y...)
-                rPIDvalue2 = rollPID2.get_pid(  currentPos['x'] - desiredPos['x'], 0.05)
-                pPIDvalue2 = pitchPID2.get_pid( currentPos['y'] - desiredPos['y'], 0.05)
+                # PID update module (we might need to invert x for y...)
+                rPIDvalue = rollPID.get_pid(  currentPos['x'] - desiredPos['x'], 0.05)
+                pPIDvalue = pitchPID.get_pid( currentPos['y'] - desiredPos['y'], 0.05)
 
                 # Check before flying that compass is calibrated
-                sinYaw = math.sin(math.radians( utils.mapping(vehicle.attitude['heading'],-180,180,0,360) ))
-                cosYaw = math.cos(math.radians( utils.mapping(vehicle.attitude['heading'],-180,180,0,360) ))
+                sinYaw = math.sin(math.radians( vehicle.attitude['heading'] ))
+                cosYaw = math.cos(math.radians( vehicle.attitude['heading'] ))
 
-                desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ))
-                desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ))
+                #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ))
+                #desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ))
 
-                desiredRoll2  = utils.toPWM(math.degrees( (rPIDvalue2 * sinYaw - pPIDvalue2 * cosYaw) * (1 / utils.g) ))
-                desiredPitch2 = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ))
+                # Mellinger paper
+                desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue2 * sinYaw - pPIDvalue2 * cosYaw) * (1 / utils.g) ),1)
+                desiredPitch = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
 
-                print "PID 1: x = %d dRoll = %d | y = %d dPitch = %d" % (currentPos['x'],desiredRoll,currentPos['y'],desiredPitch)
-                print "PID 2: x = %d dRoll = %d | y = %d dPitch = %d\n" % (currentPos['y'],desiredRoll2,currentPos['y'],desiredPitch2)
+                # Murray 
+                #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
+                #desiredPitch = utils.toPWM(math.degrees( (pPIDvalue2 * cosYaw - rPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
 
+                print "x = %0.2f Roll = %d y = %0.2f Pitch = %d yaw= %0.2f" % (currentPos['y'],desiredRoll,currentPos['y'],desiredPitch)
             else:
                 # Nothing to do but reset the rcCMD and the integrators (perhaps...)
                 rcCMD = [1500,1500,1500,1000]
-                rollPID.resetIntegrator()
-                pitchPID.resetIntegrator()
-                rollPID2.reset_I()
-                pitchPID2.reset_I()
+                #rollPID.resetIntegrator()
+                #pitchPID.resetIntegrator()
+                rollPID.reset_I()
+                pitchPID.reset_I()
 
     except Exception,error:
         print "Error in control thread: "+str(error)
