@@ -33,16 +33,16 @@ currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 rcCMD = [1500,1500,1500,1000]
 
 # PID's initialization 
-gains = {'kp':1.0, 'ki':0.5, 'kd':0.01, 'iMax':4}
+gains = {'kp':4.64, 'ki':1.13, 'kd':4.5, 'iMax':10}
 #gains = {'kp':1.0, 'ki':0.5, 'kd':0.01}
 # PID module 1
-#rollPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
-#rollPID.setPoint(desiredPos['x'])
-#pitchPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
-#pitchPID.setPoint(desiredPos['y'])
+rollPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
+rollPID.setPoint(desiredPos['x'])
+pitchPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, gains['iMax'], gains['iMax'] * -1)
+pitchPID.setPoint(desiredPos['y'])
 # PID module 2
-rollPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
-pitchPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
+#rollPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
+#pitchPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
 desiredRoll = 1500
 desiredPitch = 1500
 
@@ -55,14 +55,16 @@ def control():
         while True:
             if udp.active:
                 # Order of the position from Optitrack is: X, Z, Y
-                currentPos['x'] = udp.message[4]
-                currentPos['y'] = udp.message[6]
-                currentPos['z'] = udp.message[5]
+                currentPos['x'] = udp.message[5]
+                currentPos['y'] = udp.message[4]
+                currentPos['z'] = udp.message[6]
                 #print udp.message
 
                 # PID update module (we might need to invert x for y...)
-                rPIDvalue = rollPID.get_pid(  currentPos['x'] - desiredPos['x'], 0.05)
-                pPIDvalue = pitchPID.get_pid( currentPos['y'] - desiredPos['y'], 0.05)
+                #rPIDvalue = rollPID.get_pid(  currentPos['x'] - desiredPos['x'], 0.05)
+                #pPIDvalue = pitchPID.get_pid( currentPos['y'] - desiredPos['y'], 0.05)
+                rPIDvalue = rollPID.update(currentPos['x'])
+                pPIDvalue = pitchPID.update(currentPos['y'])
 
                 # Check before flying that compass is calibrated
                 sinYaw = math.sin(math.radians( vehicle.attitude['heading'] ))
@@ -72,14 +74,14 @@ def control():
                 #desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ))
 
                 # Mellinger paper
-                desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue2 * sinYaw - pPIDvalue2 * cosYaw) * (1 / utils.g) ),1)
-                desiredPitch = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
+                #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ),1)
+                #desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ),1)
 
                 # Murray 
-                #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
-                #desiredPitch = utils.toPWM(math.degrees( (pPIDvalue2 * cosYaw - rPIDvalue2 * sinYaw) * (1 / utils.g) ),1)
+                desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / utils.g) ),1)
+                desiredPitch = utils.toPWM(math.degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / utils.g) ),1)
 
-                print "x = %0.2f Roll = %d y = %0.2f Pitch = %d yaw= %0.2f" % (currentPos['y'],desiredRoll,currentPos['y'],desiredPitch)
+                print "x = %0.2f Roll = %d y = %0.2f Pitch = %d yaw= %0.2f" % (currentPos['y'],desiredRoll,currentPos['y'],desiredPitch,math.radians(vehicle.attitude['heading']))
             else:
                 # Nothing to do but reset the rcCMD and the integrators (perhaps...)
                 rcCMD = [1500,1500,1500,1000]
