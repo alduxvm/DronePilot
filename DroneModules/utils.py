@@ -32,3 +32,40 @@ def mapping(value,iMin,iMax,oMin,oMax):
 """ Function to limit a value to specific range """
 def limit(n, minn, maxn):
     return max(min(maxn, n), minn)
+
+
+class PID:
+    def __init__(self,p,i,d):
+        self.kP=p
+        self.kI=i
+        self.kD=d
+        self.target=0
+
+        self.lastError=0
+        self.integrator=0
+
+    def setTarget(self,newTarget):
+        self.target=newTarget
+        self.integrator=0
+
+    def step(self,currentValue):
+        """
+        Calculates the error and derives a desired output value.
+        """
+        # determine the error by simply looking at the difference between
+        # current value and target value.
+        error=currentValue-self.target
+
+        # Build the output by summing the contributions of the
+        # proportional, integral, and derivative models.
+        output= (self.kP * error
+                 + self.kI * self.integrator
+                 + self.kD * (error - self.lastError)
+                 )
+
+        # Remember the error for the derivative model
+        self.lastError=error
+        # Add the error to the integral model
+        self.integrator+=error
+
+        return output
