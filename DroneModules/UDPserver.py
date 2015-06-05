@@ -18,14 +18,14 @@ from twisted.internet import reactor
 from twisted.internet import task
 
 UDPport = 51001
-message = [1500,1500,1500,1000]
+message = [1500,1500,1500,1000,0,0,0,0]
 active = False
 
 def timeout():
     global active, message
     if not active:
         # There is no UDP data, so give message "safe" commands
-        message = [1500,1500,1500,1000]
+        message = [1500,1500,1500,1000,0,0,0,0]
     active = False
 
 class twistedUDP(DatagramProtocol):
