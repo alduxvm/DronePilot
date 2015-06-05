@@ -11,7 +11,7 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time, datetime, threading, math
+import time, datetime, threading, math, csv
 from DroneModules.pyMultiwii import MultiWii
 import DroneModules.utils as utils
 import DroneModules.UDPserver as udp
@@ -19,8 +19,9 @@ from DroneModules.pid import PID
 from DroneModules.pid2 import pid
 
 # MRUAV initialization
-vehicle = MultiWii("/dev/tty.SLAB_USBtoUART")
-#vehicle = MultiWii("/dev/ttyUSB0")
+#vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
+#vehicle = MultiWii("/dev/tty.SLAB_USBtoUART") 
+vehicle = MultiWii("/dev/ttyUSB0")
 
 # Ask for current attitude to initialize attitude values
 vehicle.getData(MultiWii.ATTITUDE)
@@ -141,12 +142,12 @@ def logPrint():
                 #          str(rPIDvalue) + "," + str(pPIDvalue) 
                 # Print message
                 #print "x = %0.2f Roll = %d y = %0.2f Pitch = %d yaw= %0.2f" % (currentPos['x'],desiredRoll,currentPos['y'],desiredPitch,math.radians(vehicle.attitude['heading']))
-                print "(%0.2f, %0.2f, %0.2f) | (%0.2f, %0.2f) | (%d, %d)" % (currentPos['x'],currentPos['y'],currentPos['z'],(rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g), (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g), desiredRoll, desiredPitch) 
+                #print "(%0.2f, %0.2f, %0.2f) | (%0.2f, %0.2f) | (%d, %d)" % (currentPos['x'],currentPos['y'],currentPos['z'],(rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g), (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g), desiredRoll, desiredPitch) 
                 # Save log
-                logger.writerow((board.attitude['timestamp'],board.attitude['elapsed'], \
-                                 board.attitude['angx'],board.attitude['angy'],board.attitude['heading'] \
-                                 currentPos['x'],currentPos['y'],currentPos['z'] \
-                                 rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3] \
+                logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
+                                 vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
+                                 currentPos['x'],currentPos['y'],currentPos['z'], \
+                                 rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
                                  rPIDvalue,pPIDvalue ))
                 time.sleep(0.0125) # To record data at 80hz exactly
     except Exception,error:
