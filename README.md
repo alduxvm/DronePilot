@@ -1,10 +1,12 @@
 # Drone Pilot
 
-Automatic pilot that can control and fly several drones, including Pixhawk's, APM's and MultiWii's
+Automatic pilot software that can control and fly several drones, including Pixhawk's, APM's and MultiWii's
 
 ## Current scripts:
 
-* first.py -> Control a MultiWii multicopter.
+* mw-joystick-test.py -> Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software.
+* mw-hover-controller.py -> Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate.
+* pix-logdata.py -> Script that logs data from a computer vision thread and from a flying multicopter with a Pixhawk. DroneApi related.
 
 ## Caution
 

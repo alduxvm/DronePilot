@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" joystick-test.py: Send commands coming from a Joystick via UDP using a Ground station with Matlab."""
+""" mw-joystick-test.py: Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
@@ -12,8 +12,8 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, threading
-from DroneModules.pyMultiwii import MultiWii
-import DroneModules.UDPserver 
+from modules.pyMultiwii import MultiWii
+import modules.UDPserver 
 
 # RC commnads to be sent to the MultiWii 
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]

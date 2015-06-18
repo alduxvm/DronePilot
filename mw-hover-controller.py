@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" hover-controller.py: Send commands to a MultiWii vehicle to keep a certain position with information from a MoCap system."""
+""" mw-hover-controller.py: Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
@@ -12,11 +12,11 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, threading, math, csv
-from DroneModules.pyMultiwii import MultiWii
-import DroneModules.utils as utils
-import DroneModules.UDPserver as udp
-from DroneModules.pid import PID
-from DroneModules.pid2 import pid
+from modules.pyMultiwii import MultiWii
+import modules.utils as utils
+import modules.UDPserver as udp
+from modules.pid import PID
+from modules.pid2 import pid
 
 # MRUAV initialization
 #vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
