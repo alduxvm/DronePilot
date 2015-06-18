@@ -22,14 +22,50 @@ __status__ = "Development"
 # * module load api
 # * api start pix-logdata.py
 
-
 from droneapi.lib import VehicleMode
 from pymavlink import mavutil
+import time, threading, csv, datetime
 
+from modules.vision import ColorTracker 
 
-import time
-import numpy as np
-import cv2
-
+# Vehicle initialisation
 api = local_connect()
-v = api.get_vehicles()[0]
+vehicle = api.get_vehicles()[0]
+
+# Waiting until the vehicle initialise
+while True:
+	if vehicle.mode.name == 'INITIALISING':
+		print "Waiting for vehicle to initialise %d" % (c)
+		c+=1
+		time.sleep(1)
+	else:
+		break
+
+# Computer vision initialization 
+landingPad = ColorTracker('red')
+visionThread = threading.Thread(target=test.findColor)
+visionThread.daemon=True
+visionThread.start()
+
+# Logger initialization 
+st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
+f = open("logs/"+st, "w")
+logger = csv.writer(f)
+logger.writerow(('timestamp','angx','angy','heading','battery','mode','longitude','latitude','altitude','targetX','targetY'))
+
+while True:
+	logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
+                     vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
+                     currentPos['x'],currentPos['y'],currentPos['z'], \
+                     rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
+                     rPIDvalue,pPIDvalue )) 
+	print "something"
+	time.sleep(0.02)
+
+
+
+
+
+
+
+
