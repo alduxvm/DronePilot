@@ -33,13 +33,11 @@ api = local_connect()
 vehicle = api.get_vehicles()[0]
 
 # Waiting until the vehicle initialise
-while True:
-	if vehicle.mode.name == 'INITIALISING':
-		print "Waiting for vehicle to initialise %d" % (c)
-		c+=1
-		time.sleep(1)
-	else:
-		break
+c=0
+while vehicle.mode.name is 'INITIALISING':
+	print "Waiting for vehicle to initialise %d" % (c)
+	c+=1
+	time.sleep(1)
 
 # Computer vision initialization 
 landingPad = ColorTracker('red')
