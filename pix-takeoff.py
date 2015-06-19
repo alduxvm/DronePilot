@@ -25,23 +25,23 @@ def arm_and_takeoff(aTargetAltitude):
 		# Don't let the user try to fly autopilot is booting
 		# Waiting until the vehicle initialise
 		# Waiting until the vehicle initialise
-		c=0
-		if vehicle.mode.name == 'INITIALISING':
-			print "Waiting for vehicle to initialise %d" % (c)
-				c+=1
-				time.sleep(1)
-		time.sleep(4)
-		# Waiting for GPS fix
-		while vehicle.gps_0.fix_type < 2:
-			print "Waiting for GPS...:", vehicle.gps_0.fix_type
-				time.sleep(1)
-				break
-	
-		print "Arming motors"
-		# Copter should arm in GUIDED mode
-		vehicle.mode    = VehicleMode("GUIDED")
-		vehicle.armed   = True
-		vehicle.flush()
+	c=0
+	while vehicle.mode.name is 'INITIALISING':
+		print "Waiting for vehicle to initialise %d" % (c)
+			c+=1
+			time.sleep(1)
+	time.sleep(4)
+	# Waiting for GPS fix
+	while vehicle.gps_0.fix_type < 2:
+		print "Waiting for GPS...:", vehicle.gps_0.fix_type
+			time.sleep(1)
+			break
+
+	print "Arming motors"
+	# Copter should arm in GUIDED mode
+	vehicle.mode    = VehicleMode("GUIDED")
+	vehicle.armed   = True
+	vehicle.flush()
 
 	while not vehicle.armed and not api.exit:
 		print " Waiting for arming..."
