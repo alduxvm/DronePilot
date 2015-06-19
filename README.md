@@ -1,6 +1,6 @@
 # Drone Pilot
 
-Automatic pilot software that can control and fly several drones, including Pixhawk's, APM's and MultiWii's
+ Pilot software (running on companion computers) for the flight controller autopilot's. It can control and fly several flight controllers, including Pixhawk's, APM's and MultiWii's.
 
 ## Current scripts:
 
@@ -11,6 +11,20 @@ Automatic pilot software that can control and fly several drones, including Pixh
 * pix-logdata.py -> Script that logs data from a computer vision thread and from a flying multicopter with a Pixhawk. DroneApi related.
 
 * pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related.
+
+## Supported flight controllers:
+
+* Multiwii boards (using MSP)
+
+* Pixhawk / PX4 / APM (using mavlink & drone API)
+
+## Supported companion computers: 
+
+* Raspberry Pi (currently in use)
+
+* oDroid U3 (taking a rest)
+
+Note: Code is in python, so, any linux computer would be able tu run it.
 
 ## Caution
 
