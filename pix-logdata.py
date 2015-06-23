@@ -52,13 +52,13 @@ logger = csv.writer(f)
 logger.writerow(('timestamp','angx','angy','heading','battery','mode','longitude','latitude','altitude','targetX','targetY'))
 
 while True:
-	logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
-                     vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
-                     currentPos['x'],currentPos['y'],currentPos['z'], \
-                     rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
-                     rPIDvalue,pPIDvalue )) 
-	print "Vehicle Attitude: %s" % v.attitude
-	time.sleep(0.005)
+#	logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
+#                     vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
+#                     currentPos['x'],currentPos['y'],currentPos['z'], \
+#                     rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
+#                     rPIDvalue,pPIDvalue )) 
+	print "Attitude: %s" % v.attitude
+	time.sleep(0.05)
 
 
 
