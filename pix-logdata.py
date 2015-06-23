@@ -57,7 +57,7 @@ while True:
 #                     currentPos['x'],currentPos['y'],currentPos['z'], \
 #                     rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
 #                     rPIDvalue,pPIDvalue )) 
-	print "Attitude: %s" % v.attitude
+	print "%s" % vehicle.attitude
 	time.sleep(0.05)
 
 
