@@ -36,7 +36,7 @@ def arm_and_takeoff(aTargetAltitude):
 		
     print "Arming motors"
     # Copter should arm in GUIDED mode
-    vehicle.mode    = vehicle.Mode("GUIDED")
+    vehicle.mode    = VehicleMode("GUIDED")
     vehicle.armed   = True
     vehicle.flush()
 
