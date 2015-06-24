@@ -63,24 +63,18 @@ print "Going to first point..."
 point1 = Location(55.870586,-4.287632, 25, is_relative=True)
 vehicle.commands.goto(point1)
 vehicle.flush()
-
-# sleep so we can see the change in map
 time.sleep(10)
 
 print "Going to second point..."
 point2 = Location(55.870548,-4.287313, 25, is_relative=True)
 vehicle.commands.goto(point2)
 vehicle.flush()
-
-# sleep so we can see the change in map
 time.sleep(10)
 
 print "Going to second point..."
-point2 = Location(55.870519, -4.287637, 25, is_relative=True)
+point3 = Location(55.870519, -4.287637, 25, is_relative=True)
 vehicle.commands.goto(point3)
 vehicle.flush()
-
-# sleep so we can see the change in map
 time.sleep(10)
 
 print "Returning to Launch"
