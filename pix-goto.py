@@ -63,23 +63,27 @@ print "Going to first point..."
 point1 = Location(55.870586,-4.287632, 25, is_relative=True)
 vehicle.commands.goto(point1)
 vehicle.flush()
+print "Waiting 10 seconds 1"
 time.sleep(10)
 
 print "Going to second point..."
 point2 = Location(55.870548,-4.287313, 25, is_relative=True)
 vehicle.commands.goto(point2)
 vehicle.flush()
+print "Waiting 10 seconds 2"
 time.sleep(10)
 
 print "Going to second point..."
 point3 = Location(55.870519, -4.287637, 25, is_relative=True)
 vehicle.commands.goto(point3)
 vehicle.flush()
+print "Waiting 10 seconds 3"
 time.sleep(10)
 
 print "Returning to Launch"
 vehicle.mode    = VehicleMode("RTL")
 vehicle.flush()
+print "Waiting 10 seconds RTL"
 time.sleep(10)
 
 print "Landing the Aircraft"
