@@ -15,7 +15,7 @@ __status__ = "Development"
 import time
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
-from modules.vehicle import *
+#from modules.vehicle import *
 
 api = local_connect()
 vehicle = api.get_vehicles()[0]
