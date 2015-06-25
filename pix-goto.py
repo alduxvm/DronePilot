@@ -12,7 +12,7 @@ __maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time
+import time, math
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
 #from modules.vehicle import *
@@ -21,64 +21,68 @@ api = local_connect()
 vehicle = api.get_vehicles()[0]
 
 def arm_and_takeoff(aTargetAltitude):
-    """
-    Arms vehicle and fly to aTargetAltitude.
-    """
-
-    print "Basic pre-arm checks"
-    # Don't let the user try to fly autopilot is booting
-    if vehicle.mode.name == "INITIALISING":
-        print "Waiting for vehicle to initialise"
-        time.sleep(1)
-    while vehicle.gps_0.fix_type < 2:
-        print "Waiting for GPS...:", vehicle.gps_0.fix_type
-        time.sleep(1)
+	"""
+	Arms vehicle and fly to aTargetAltitude.
+	"""
+	print "Basic pre-arm checks"
+	# Don't let the user try to fly autopilot is booting
+	if vehicle.mode.name == "INITIALISING":
+		print "Waiting for vehicle to initialise"
+		time.sleep(1)
+	while vehicle.gps_0.fix_type < 2:
+		print "Waiting for GPS...:", vehicle.gps_0.fix_type
+		time.sleep(1)
 		
-    print "Arming motors"
-    # Copter should arm in GUIDED mode
-    vehicle.mode    = VehicleMode("GUIDED")
-    vehicle.armed   = True
-    vehicle.flush()
+	print "Arming motors"
+	# Copter should arm in GUIDED mode
+	vehicle.mode    = VehicleMode("GUIDED")
+	vehicle.armed   = True
+	vehicle.flush()
 
-    while not vehicle.armed and not api.exit:
-        print " Waiting for arming..."
-        time.sleep(1)
+	while not vehicle.armed and not api.exit:
+		print " Waiting for arming..."
+		time.sleep(1)
 
-    print "Taking off!"
-    vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
-    vehicle.flush()
+	print "Taking off!"
+	vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
+	vehicle.flush()
 
-    # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command 
-    #  after Vehicle.commands.takeoff will execute immediately).
-    while not api.exit:
-        print " Altitude: ", vehicle.location.alt
-        if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
-            print "Reached target altitude"
-            break;
-        time.sleep(1)
+	while not api.exit:
+		print " Altitude: ", vehicle.location.alt
+		if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
+			print "Reached target altitude"
+			break;
+		time.sleep(1)
+
+def go_to(target):
+	timeout = 20
+	start = time.time()
+	vehicle.commands.goto(target)
+	vehicle.flush()
+	
+	while not api.exit:
+			current = time.time() - start
+			dTarget = math.sqrt(math.pow(target.lat-vehicle.location.lat,2)+math.pow(target.lon-vehicle.location.lon,2))
+			print " ->%0.2f Traveling to WP, distance = %f" % (current, dTarget)
+			if dTarget<=0.000005:
+					print "Reached target location"
+					break;
+			if current >= timeout:
+					print "Timeout to reach location"
+					break;
+			time.sleep(0.5)
+
 
 arm_and_takeoff(20)
 
-print "Going to first point..."
 point1 = Location(55.870586,-4.287632, 25, is_relative=True)
-vehicle.commands.goto(point1)
-vehicle.flush()
-print "Waiting 10 seconds 1"
-time.sleep(10)
+go_to(point1)
 
-print "Going to second point..."
 point2 = Location(55.870548,-4.287313, 25, is_relative=True)
-vehicle.commands.goto(point2)
-vehicle.flush()
-print "Waiting 10 seconds 2"
-time.sleep(10)
+go_to(point2)
 
-print "Going to second point..."
-point3 = Location(55.870519, -4.287637, 25, is_relative=True)
-vehicle.commands.goto(point3)
-vehicle.flush()
-print "Waiting 10 seconds 3"
-time.sleep(10)
+point3 = Location(55.870519,-4.287637, 25, is_relative=True)
+go_to(point3)
 
 print "Returning to Launch"
 vehicle.mode    = VehicleMode("RTL")

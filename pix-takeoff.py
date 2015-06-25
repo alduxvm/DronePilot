@@ -25,7 +25,6 @@ def arm_and_takeoff(aTargetAltitude):
     """
 
     print "Basic pre-arm checks"
-    # Don't let the user try to fly autopilot is booting
     if vehicle.mode.name == "INITIALISING":
         print "Waiting for vehicle to initialise"
         time.sleep(1)
@@ -34,7 +33,6 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
 		
     print "Arming motors"
-    # Copter should arm in GUIDED mode
     vehicle.mode    = VehicleMode("GUIDED")
     vehicle.armed   = True
     vehicle.flush()
