@@ -35,34 +35,33 @@ Note: Code is in python, so, any linux computer would be able tu run it.
 * Raspberry Pi (Rasbian)
 
 <ol>
-<li> Update your Pi
+<li> Update your Pi </li>
 ```
 sudo apt-get update
 sudo apt-get upgrade
 ```
-</li>
-<li> Next this one:
+
+<li> Next this one: </li>
 ```
 sudo apt-get install python-dev
 ```
-</li> 
-<li> More utilities:
+
+<li> More utilities: </li>
 ```
 sudo apt-get install screen python-wxgtk2.8 python-matplotlib python-opencv python-pip python-numpy python-serial
 ```
-</li> 
-<li> Then mavlink and mavproxy:
+
+<li> Then mavlink and mavproxy: </li>
 ```
 sudo pip install pymavlink
 sudo pip install mavproxy
 sudo pip install droneapi
 ```
-</li> 
-<li> Clone this repository:
+
+<li> Clone this repository: </li>
 ```
 git clone https://github.com/alduxvm/DronePilot.git
 ```
-</li> 
 </ol>
 
 All set!! go do tests!!
