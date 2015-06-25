@@ -19,9 +19,11 @@ from pymavlink import mavutil
 api = local_connect()
 vehicle = api.get_vehicles()[0]
 
-def arm_and_takeoff(aTargetAltitude):
+""" Functions to be implemented inside a module - todo """
+
+def arm_and_takeoff(targetAltitude):
     """
-    Arms vehicle and fly to aTargetAltitude.
+    Arms vehicle and fly to a target altitude.
     """
 
     print "Basic pre-arm checks"
@@ -42,17 +44,21 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
 
     print "Taking off!"
-    vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
+    vehicle.commands.takeoff(targetAltitude) # Take off to target altitude
     vehicle.flush()
 
     # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command 
     #  after Vehicle.commands.takeoff will execute immediately).
     while not api.exit:
         print " Altitude: ", vehicle.location.alt
-        if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
+        if vehicle.location.alt>=targetAltitude*0.95: #Just below target, in case of undershoot.
             print "Reached target altitude"
             break;
         time.sleep(1)
+
+
+
+""" Mission starts here """
 
 arm_and_takeoff(3)
 

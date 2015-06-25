@@ -20,6 +20,8 @@ from pymavlink import mavutil
 api = local_connect()
 vehicle = api.get_vehicles()[0]
 
+""" Functions to be implemented inside a module - todo """
+
 def arm_and_takeoff(aTargetAltitude):
 	"""
 	Arms vehicle and fly to aTargetAltitude.
@@ -73,7 +75,10 @@ def go_to(target):
 			time.sleep(0.5)
 
 
-arm_and_takeoff(20)
+
+""" Mission starts here """
+
+arm_and_takeoff(10)
 
 point1 = Location(55.870586,-4.287632, 25, is_relative=True)
 go_to(point1)

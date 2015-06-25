@@ -12,6 +12,10 @@
 
 * pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related.
 
+* pix-goto.py -> Script that commands the vehicle to follow waypoints. 
+
+* pix-velocity-vector.py -> Script that send the vehicle a velocity vector to form a square and diamond shape.
+
 ## Supported flight controllers:
 
 * Multiwii boards (using MSP)
