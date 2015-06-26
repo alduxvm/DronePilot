@@ -62,6 +62,15 @@ sudo pip install droneapi
 git clone https://github.com/alduxvm/DronePilot.git
 ```
 
+#### Simulation
+
+If you're doing tests with simulation, don't forget to turn off the parameter checking inside the mavproxy console, so that you can arm the vehicle:
+
+```
+param set ARMING_CHECK 0
+
+```
+
 All set!! go do tests!!
 
 ## Caution

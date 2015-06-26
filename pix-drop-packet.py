@@ -116,7 +116,6 @@ def drop_packet(port):
 		vehicle.flush()
 
 
-
 """ Mission starts here """
 
 arm_and_takeoff(10)
