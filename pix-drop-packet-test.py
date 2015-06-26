@@ -106,12 +106,12 @@ def condition_yaw(heading):
 
 def drop_packet(port):
 		vehicle = api.get_vehicles()[0]
-		msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, 5, 2000, 0, 0, 0, 0, 0)
+		msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, port, 2000, 0, 0, 0, 0, 0)
 		vehicle.send_mavlink(msg)
 		vehicle.flush()
 		time.sleep(3)
-		print "Reseeting Servo"
-		msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, 5, 1000, 0, 0, 0, 0, 0)
+		print "Reseting Servo"
+		msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, port, 1000, 0, 0, 0, 0, 0)
 		vehicle.send_mavlink(msg)
 		vehicle.flush()
 
@@ -120,5 +120,5 @@ def drop_packet(port):
 """ Mission starts here """
 
 print "Dropping packet!"
-drop_packet(5)
+drop_packet(6)
 print"Packet dropped"
