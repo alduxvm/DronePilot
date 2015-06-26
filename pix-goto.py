@@ -64,9 +64,9 @@ def go_to(target):
 	
 	while not api.exit:
 			current = time.time() - start
-			dTarget = math.sqrt(math.pow(target.lat-vehicle.location.lat,2)+math.pow(target.lon-vehicle.location.lon,2))
-			print " ->%0.2f Traveling to WP, distance = %f" % (current, dTarget)
-			if dTarget<=0.000005:
+			distance = math.sqrt(math.pow(target.lat-vehicle.location.lat,2)+math.pow(target.lon-vehicle.location.lon,2))
+			print " ->%0.2f Traveling to WP %d, distance = %f" % (current, WP, distance)
+			if distance<=0.000005:
 					print "Reached target location"
 					break;
 			if current >= timeout:
@@ -81,13 +81,20 @@ def go_to(target):
 arm_and_takeoff(10)
 
 point1 = Location(55.870586,-4.287632, 25, is_relative=True)
-go_to(point1)
+WP = 1
+go_to(point1, WP)
 
 point2 = Location(55.870548,-4.287313, 25, is_relative=True)
-go_to(point2)
+WP =+
+go_to(point2, WP)
 
 point3 = Location(55.870519,-4.287637, 25, is_relative=True)
-go_to(point3)
+WP =+
+go_to(point3, WP)
+
+point4 = Location(55.870576,-4.288043, 20, is_relative=True)
+WP =+
+go_to(point4,WP)
 
 print "Returning to Launch"
 vehicle.mode    = VehicleMode("RTL")
