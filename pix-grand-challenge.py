@@ -136,29 +136,29 @@ WP = 1
 arm_and_takeoff(20)
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point1, WP)
+go_to(wp1, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point2, WP)
+go_to(wp2, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point3, WP)
+go_to(wp3, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point4, WP)
+go_to(wp4, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point5, WP)
+go_to(wp5, WP)
 print " \n ->Dropping packet close to waypoint %d\n" % (WP)
 drop_packet(6)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(point6, WP)
+go_to(wp6, WP)
 WP += 1
 
 
