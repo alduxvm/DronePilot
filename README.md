@@ -12,9 +12,15 @@
 
 * pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related.
 
+[![Example take-off](http://img.youtube.com/vi/KnjYYBKLK0s/0.jpg)](http://www.youtube.com/watch?v=KnjYYBKLK0s)
+
 * pix-goto.py -> Script that commands the vehicle to follow waypoints. 
 
+![Example goto](http://www.aldux.net/images/goto.png "SITL of this script working")
+
 * pix-velocity-vector.py -> Script that send the vehicle a velocity vector to form a square and diamond shape.
+
+![Example velocity vector](http://www.aldux.net/images/velocity.png "SITL of this script working")
 
 ## Supported flight controllers:
 
@@ -137,14 +143,13 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
 }
 ```
 
-### FPV
+### VIDEO
 
 ```
-sudo apt-get install mplayer netcat
-cd /opt/vc/src/hello_pi
-make –C libs/ilclient
-make –C libs/vgfont
-cd /opt/vc/src/hello_pi/hello_video
-make
-cd ~
+sudo modprobe -v bcm2835-v4l2
+git clone https://github.com/mpromonet/h264_v4l2_rtspserver.git
+cd h264_v4l2_rtspserver
+cmake .
+make install
+h264_v4l2_rtspserver -H <height> -W <width> -F <fps>
 ```

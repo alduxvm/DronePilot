@@ -56,7 +56,7 @@ def arm_and_takeoff(aTargetAltitude):
 			break;
 		time.sleep(1)
 
-def go_to(target):
+def go_to(target,WP):
 	timeout = 20
 	start = time.time()
 	vehicle.commands.goto(target)
@@ -85,15 +85,15 @@ WP = 1
 go_to(point1, WP)
 
 point2 = Location(55.870548,-4.287313, 25, is_relative=True)
-WP =+
+WP += 1
 go_to(point2, WP)
 
 point3 = Location(55.870519,-4.287637, 25, is_relative=True)
-WP =+
+WP += 1
 go_to(point3, WP)
 
 point4 = Location(55.870576,-4.288043, 20, is_relative=True)
-WP =+
+WP += 1
 go_to(point4,WP)
 
 print "Returning to Launch"
