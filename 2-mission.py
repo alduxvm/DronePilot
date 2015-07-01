@@ -57,7 +57,7 @@ def arm_and_takeoff(aTargetAltitude):
 		time.sleep(1)
 
 def go_to(target, WP):
-	timeout = 40
+	timeout = 120
 	start = time.time()
 	vehicle.commands.goto(target)
 	vehicle.flush()
@@ -125,6 +125,8 @@ def drop_packet(port):
 pits = 52.486384, -1.141389
 
 runway = 52.486139, -1.1419944444444443
+runway2 = 52.486735, -1.142449
+
 wp1 = 52.4860611, -1.1442527777777778
 wp2 = 52.4843667, -1.1449944444444444
 wp3 = 52.4848, -1.1479277777777777
@@ -138,7 +140,8 @@ target = 52.4868917, -1.1405444444444444
 cruise_altitude = 30
 drop_altitude = 2
 
-runway = Location(52.486139, -1.1419944444444443, cruise_altitude, is_relative=True)
+#runway = Location(52.486139, -1.141994, cruise_altitude, is_relative=True)
+runway = Location(52.486735, -1.142449, cruise_altitude, is_relative=True)
 wp1 = Location(52.4860611, -1.1442527777777778, cruise_altitude, is_relative=True)
 wp2 = Location(52.4843667, -1.1449944444444444, cruise_altitude, is_relative=True)
 wp3 = Location(52.4848, -1.1479277777777777, cruise_altitude, is_relative=True)
