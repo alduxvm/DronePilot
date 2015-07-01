@@ -154,11 +154,7 @@ go_to(wp1, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp2, WP)
-WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp3, WP)
+go_to(wp5, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
