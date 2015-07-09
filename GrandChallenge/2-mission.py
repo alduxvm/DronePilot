@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pix-drop-packet.py -> Script that commands the vehicle to follow waypoints and then drop a packet. """
+""" 2-mission.py -> UAS Grand Challenge mission (part 2) to do WP's and drop another packet. """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"

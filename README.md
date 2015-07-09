@@ -22,6 +22,10 @@
 
 ![Example velocity vector](http://www.aldux.net/images/velocity.png "SITL of this script working")
 
+* All the examples inside the folder "GrandChallenge" were used for the UAS Grand Challenge 2015 and they are dependant to our vehicle setup, but you can play with them using SITL. 
+
+[![UAS Grand Challenge, University of Glasgow entry](http://img.youtube.com/vi/ng31fPpnzgU/0.jpg)](http://www.youtube.com/watch?v=ng31fPpnzgU)
+
 ## Supported flight controllers:
 
 * Multiwii boards (using MSP)
@@ -103,7 +107,7 @@ For the 'pix-' scripts the following assumptions must be noted:
 /etc/ssh/ssh_config
 ```
 ServerAliveInterval 5
-ClientAliveInterval
+ClientAliveInterval 5
 ```
 
 ### ad-hoc:

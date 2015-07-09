@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pix-drop-packet.py -> Script that commands the vehicle to follow waypoints and then drop a packet. """
+""" victoria-park.py -> UAS Grand Challenge mission to do test WP's and drop a packet on Victoria Park, Leicester. """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
@@ -57,7 +57,7 @@ def arm_and_takeoff(aTargetAltitude):
 		time.sleep(1)
 
 def go_to(target, WP):
-	timeout = 40
+	timeout = 120
 	start = time.time()
 	vehicle.commands.goto(target)
 	vehicle.flush()
@@ -125,6 +125,8 @@ def drop_packet(port):
 pits = 52.486384, -1.141389
 
 runway = 52.486139, -1.1419944444444443
+runway2 = 52.486735, -1.142449
+
 wp1 = 52.4860611, -1.1442527777777778
 wp2 = 52.4843667, -1.1449944444444444
 wp3 = 52.4848, -1.1479277777777777
@@ -132,53 +134,27 @@ wp4 = 52.486175, -1.140925
 wp5 = 52.4875639, -1.1409
 target = 52.4868917, -1.1405444444444444
 
+samplewp1 = 52.486168, -1.143092
+samplewp2 = 52.486641, -1.141860
 
 """
 
-cruise_altitude = 30
+cruise_altitude = 4
 drop_altitude = 2
 
-runway = Location(52.486139, -1.1419944444444443, cruise_altitude, is_relative=True)
-wp1 = Location(52.4860611, -1.1442527777777778, cruise_altitude, is_relative=True)
-wp2 = Location(52.4843667, -1.1449944444444444, cruise_altitude, is_relative=True)
-wp3 = Location(52.4848, -1.1479277777777777, cruise_altitude, is_relative=True)
-wp4 = Location(52.486175, -1.140925, cruise_altitude, is_relative=True)
-wp5 = Location(52.4875639, -1.1409, cruise_altitude, is_relative=True)
-drop_target = Location(52.4868917, -1.1405444444444444, drop_altitude, is_relative=True)
+samplewp1 = Location(52.621788, -1.116686, cruise_altitude, is_relative=True)
+samplewp2 = Location(52.621626, -1.116849, cruise_altitude, is_relative=True)
 
 WP = 1
-arm_and_takeoff(20)
+arm_and_takeoff(4)
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp1, WP)
+go_to(samplewp1, WP)
 WP += 1
 
 print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp2, WP)
+go_to(samplewp2, WP)
 WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp3, WP)
-WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp4, WP)
-WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(drop_target, WP)
-print " \n ->Dropping packet close to waypoint %d\n" % (WP)
-drop_packet(8)
-WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(wp5, WP)
-WP += 1
-
-print "\n -> Start traveling to wapypoint %d\n" % (WP)
-go_to(runway, WP)
-WP += 1
-
 
 print "Returning to Launch"
 vehicle.mode    = VehicleMode("RTL")
