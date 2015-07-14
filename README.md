@@ -26,6 +26,8 @@
 
 [![UAS Grand Challenge, University of Glasgow entry](http://img.youtube.com/vi/ng31fPpnzgU/0.jpg)](http://www.youtube.com/watch?v=ng31fPpnzgU)
 
+* pix-joystick.py -> Script that send the vehicle joystick override using data from a UDP server.
+
 ## Supported flight controllers:
 
 * Multiwii boards (using MSP)
@@ -102,7 +104,7 @@ For the 'pix-' scripts the following assumptions must be noted:
 * In our setup, telemetry port 2 is configured at 115200 on the pixhawk
 * rpi camera connected (for computer vision) 
 
-### ssh:
+#### ssh:
 
 /etc/ssh/ssh_config
 ```
@@ -110,7 +112,7 @@ ServerAliveInterval 5
 ClientAliveInterval 5
 ```
 
-### ad-hoc:
+#### ad-hoc:
 
 /etc/network/interfaces
 ```
@@ -147,7 +149,7 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
 }
 ```
 
-### VIDEO
+#### Video
 
 ```
 sudo modprobe -v bcm2835-v4l2

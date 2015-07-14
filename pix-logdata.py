@@ -39,27 +39,12 @@ while vehicle.mode.name is 'INITIALISING':
 	c+=1
 	time.sleep(1)
 
-# Computer vision initialization 
-#landingPad = ColorTracker('red')
-#visionThread = threading.Thread(target=test.findColor)
-#visionThread.daemon=True
-#visionThread.start()
-
-# Logger initialization 
-st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-f = open("logs/"+st, "w")
-logger = csv.writer(f)
-logger.writerow(('timestamp','angx','angy','heading','battery','mode','longitude','latitude','altitude','targetX','targetY'))
-
-while True:
-#	logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
-#                     vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
-#                     currentPos['x'],currentPos['y'],currentPos['z'], \
-#                     rcCMD[0],rcCMD[1],rcCMD[2],rcCMD[3], \
-#                     rPIDvalue,pPIDvalue )) 
-	print "%s" % vehicle.attitude
-	time.sleep(0.05)
-
+try: 
+	while True:
+		print "%s" % vehicle.attitude
+		time.sleep(0.05)
+except KeyboardInterrupt:
+	break;
 
 
 
