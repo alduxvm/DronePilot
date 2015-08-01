@@ -15,8 +15,8 @@ import time, datetime, threading, math, csv
 from modules.pyMultiwii import MultiWii
 import modules.utils as utils
 import modules.UDPserver as udp
-from modules.pid import PID
-from modules.pid2 import pid
+#from modules.pid import PID
+from modules.pids import PID_Controller
 
 # MRUAV initialization
 #vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
@@ -50,10 +50,15 @@ pPIDvalue = 0.0
 #pitchPID = pid(gains['kp'], gains['ki'], gains['kd'], gains['iMax'])
 
 # PID module 3
-rollPID = utils.PID(gains['kp'], gains['ki'], gains['kd'])
-pitchPID = utils.PID(gains['kp'], gains['ki'], gains['kd'])
-rollPID.setTarget(desiredPos['x'])
-rollPID.setTarget(desiredPos['y'])
+#rollPID = utils.PID(gains['kp'], gains['ki'], gains['kd'])
+#pitchPID = utils.PID(gains['kp'], gains['ki'], gains['kd'])
+#rollPID.setTarget(desiredPos['x'])
+#rollPID.setTarget(desiredPos['y'])
+
+# PID module pids
+rollPID = PID_Controller(gains['kp'], gains['ki'], gains['kd'])
+pitchPID = PID_Controller(gains['kp'], gains['ki'], gains['kd'])
+
 
 # Function to update position control, to be called by a thread
 def control():
@@ -85,7 +90,10 @@ def control():
                 #rPIDvalue = rollPID.update(currentPos['x'])
                 #pPIDvalue = pitchPID.update(currentPos['y'])
                 # pid 3
-                rPIDvalue = rollPID.step(currentPos['x'])
+                #rPIDvalue = rollPID.step(currentPos['x'])
+                #pPIDvalue = pitchPID.step(currentPos['y'])
+                # pid 4
+                rPIDvalue = rollPID.getCorrection(desiredPos['x'],currentPos['x'])
                 pPIDvalue = pitchPID.step(currentPos['y'])
 
                 # Check before flying that compass is calibrated
