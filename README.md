@@ -4,7 +4,7 @@
 
 ## Current scripts:
 
-* mw-joystick-test.py -> Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software.
+* mw-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software.
 
 * mw-hover-controller.py -> Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate.
 
@@ -27,6 +27,8 @@
 [![UAS Grand Challenge, University of Glasgow entry](http://img.youtube.com/vi/ng31fPpnzgU/0.jpg)](http://www.youtube.com/watch?v=ng31fPpnzgU)
 
 * pix-joystick.py -> Script that send the vehicle joystick override using data from a UDP server.
+
+* pix-joystick-all-included.py -> Script that send the vehicle joystick override using data from a UDP server. Everything needed to run is in the script, due to failure to import modules inside mavproxy.py
 
 ## Supported flight controllers:
 
@@ -73,6 +75,17 @@ sudo pip install droneapi
 ```
 git clone https://github.com/alduxvm/DronePilot.git
 ```
+
+#### DroneAPI
+
+You have to load the module inside mavproxy.py, to do that just type:
+
+```
+module load droneapi.module.api
+
+```
+
+Now you're ready to run .py files with droneapi/dronekit! 
 
 #### Simulation
 

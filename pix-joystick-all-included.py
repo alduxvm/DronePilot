@@ -14,10 +14,58 @@ __status__ = "Development"
 import time, math
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
-import modules.UDPserver 
+
+
+""" ------------------- UDP module ------------------- """
+""" Functions to be implemented inside a module - todo """
+
+
+import struct, time, socket
+from twisted.internet.protocol import DatagramProtocol
+from twisted.internet import reactor
+from twisted.internet import task
+
+UDPport = 51001
+message = [1500,1500,1500,1000,0,0,0,0]
+active = False
+
+def timeout():
+    global active, message
+    if not active:
+        # There is no UDP data, so give message "safe" commands
+        message = [1500,1500,1500,1000,0,0,0,0]
+    active = False
+
+class twistedUDP(DatagramProtocol):
+
+    def datagramReceived(self, data, (host, port)):
+        global message, active
+        active = True
+        #self.timeout.cancel()
+        numOfValues = len(data) / 8
+        mess=struct.unpack('>' + 'd' * numOfValues, data)
+        message = [ round(element,6) for element in mess ]
+        #print message
+        #UDPmess.insert(0,time.time())
+        #self.sendMSG(cfg.line,(cfg.UDPip, cfg.UDPportOut))
+        #self.sendMSG("1",(cfg.UDPip, cfg.UDPportOut))
+    #def sendMSG(self, data, (host, port)):
+    #     self.transport.write(data, (host, port))
+
+def startTwisted():
+    l = task.LoopingCall(timeout)
+    l.start(0.5) # Check for disconnection each 0.1 and send neutral commands
+    reactor.listenUDP(UDPport, twistedUDP())
+    reactor.run()
+
+""" ----------------- end UDP module ------------------ """
+""" --------------------------------------------------- """
+
+
 
 api = local_connect()
 vehicle = api.get_vehicles()[0]
+
 
 """ Functions to be implemented inside a module - todo """
 
@@ -107,12 +155,12 @@ def condition_yaw(heading):
 def joystick():
     try:
         while True:
-            if modules.UDPserver.active:
+            if active:
                 # Part for applying commands to the vehicle.
-                vehicle.channel_override = { "1" : modules.UDPserver.message[0], "2" : modules.UDPserver.message[1], \
-                                             "3" : modules.UDPserver.message[2], "4" : modules.UDPserver.message[3] }
+                vehicle.channel_override = { "1" : message[0], "2" : message[1], \
+                                             "3" : message[2], "4" : message[3] }
                 vehicle.flush()
-                #print modules.UDPserver.message
+                #print message
                 #time.sleep(0.01) # Maybe not needed?
     except Exception,error:
         print "Error on joystick thread: "+str(error)
@@ -124,7 +172,7 @@ if __name__ == "__main__":
         vehicleThread = threading.Thread(target=joystick)
         vehicleThread.daemon=True
         vehicleThread.start()
-        modules.UDPserver.startTwisted()
+        startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)
         vehicle.ser.close()

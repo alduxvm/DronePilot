@@ -27,19 +27,19 @@ def updateCMDATT():
     global vehicle, rcCMD
     try:
         while True:
-            if DroneModules.UDPserver.active:
+            if modules.UDPserver.active:
                 # Part for applying commands to the vehicle.
-                rcCMD[0] = DroneModules.UDPserver.message[0]
-                rcCMD[1] = DroneModules.UDPserver.message[1]
-                rcCMD[2] = DroneModules.UDPserver.message[2]
-                rcCMD[3] = DroneModules.UDPserver.message[3]
+                rcCMD[0] = modules.UDPserver.message[0]
+                rcCMD[1] = modules.UDPserver.message[1]
+                rcCMD[2] = modules.UDPserver.message[2]
+                rcCMD[3] = modules.UDPserver.message[3]
                 vehicle.sendCMDreceiveATT(16,MultiWii.SET_RAW_RC,rcCMD)
                 #print vehicle.attitude
-                #print DroneModules.UDPserver.message
+                #print modules.UDPserver.message
                 #time.sleep(0.01)
             #else: 
                 # Part for landing and disarming.
-                #print DroneModules.UDPserver.message
+                #print modules.UDPserver.message
                 #print "Landing!"
                 #time.sleep(1)
     except Exception,error:
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         vehicleThread = threading.Thread(target=updateCMDATT)
         vehicleThread.daemon=True
         vehicleThread.start()
-        DroneModules.UDPserver.startTwisted()
+        modules.UDPserver.startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)
         vehicle.ser.close()
