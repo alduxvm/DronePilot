@@ -117,6 +117,8 @@ def joystick():
                 vehicle.channel_override = { "1" : modules.UDPserver.message[0], "2" : modules.UDPserver.message[1], \
                                              "3" : modules.UDPserver.message[2], "4" : modules.UDPserver.message[3] }
                 vehicle.flush()
+                print "%s" % vehicle.attitude
+                print "%s" % vehicle.channel_readback
                 #print modules.UDPserver.message
                 #time.sleep(0.01) # Maybe not needed?
     except Exception,error:
@@ -124,15 +126,10 @@ def joystick():
         joystick()
 
 """ Mission starts here """
-if __name__ == "__main__":
-    try:
-        vehicleThread = threading.Thread(target=joystick)
-        vehicleThread.daemon=True
-        vehicleThread.start()
-        modules.UDPserver.startTwisted()
-    except Exception,error:
-        print "Error on main: "+str(error)
-        vehicle.ser.close()
-    except KeyboardInterrupt:
-        print "Keyboard Interrupt, exiting."
-        exit()
+try:
+    vehicleThread = threading.Thread(target=joystick)
+    vehicleThread.daemon=True
+    vehicleThread.start()
+    modules.UDPserver.startTwisted()
+except Exception,error:
+    print "Error on main: "+str(error)

@@ -39,12 +39,9 @@ while vehicle.mode.name is 'INITIALISING':
 	c+=1
 	time.sleep(1)
 
-try: 
-	while True:
-		print "%s" % vehicle.attitude
-		time.sleep(0.05)
-except KeyboardInterrupt:
-	break;
+while True:
+	print "%s" % vehicle.attitude
+	time.sleep(0.05)
 
 
 
