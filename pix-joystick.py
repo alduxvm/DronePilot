@@ -14,7 +14,12 @@ __status__ = "Development"
 import time, math
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
-import modules.UDPserver 
+
+'''  To import own modules, you need to export the current path before importing the module.    '''
+'''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
+import os, sys
+sys.path.append(os.getcwd())
+import modules.UDPserver
 
 api = local_connect()
 vehicle = api.get_vehicles()[0]
