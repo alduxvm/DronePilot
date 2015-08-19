@@ -12,6 +12,8 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 
+import time, threading
+
 '''  To import own modules, you need to export the current path before importing the module.    '''
 '''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
 import os, sys
@@ -23,10 +25,11 @@ import modules.pixVehicle
 api = local_connect()
 vehicle = api.get_vehicles()[0]
 
+
 def joystick():
-	"""
-	Function to update commands and attitude to be called by a thread.
-	"""
+    """
+    Function to update commands and attitude to be called by a thread.
+    """
     try:
         while True:
             if modules.UDPserver.active:
@@ -37,7 +40,6 @@ def joystick():
                 pitch    = utils.mapping(modules.UDPserver.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
                 throttle = modules.UDPserver.message[3] - 100 # Subtract in order to allow arming
                 yaw      = utils.mapping(modules.UDPserver.message[2],1000,2000,900,2100) # Map it to match RC configuration
-
                 vehicle.channel_override = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
                 vehicle.flush()
                 #print "%s" % vehicle.attitude
@@ -55,4 +57,4 @@ try:
     vehicleThread.start()
     modules.UDPserver.startTwisted()
 except Exception,error:
-    print "Error on main: "+str(error)
+    print "Error on main script thread: "+str(error)

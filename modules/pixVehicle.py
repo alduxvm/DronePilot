@@ -16,9 +16,9 @@ from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
 
 def arm_and_takeoff(aTargetAltitude):
-	"""
-	Arms vehicle and fly to aTargetAltitude.
-	"""
+    """
+    Arms vehicle and fly to aTargetAltitude.
+    """
 	print "Basic pre-arm checks"
 	# Don't let the user try to fly autopilot is booting
 	if vehicle.mode.name == "INITIALISING":
@@ -50,9 +50,9 @@ def arm_and_takeoff(aTargetAltitude):
 		time.sleep(1)
 
 def go_to(target):
-	"""
-	Function that makes the vehicle travel to an specific lat/lon location. Measures distance and if the target is reached.
-	"""
+    """
+    Function that makes the vehicle travel to an specific lat/lon location. Measures distance and if the target is reached.
+    """
 	timeout = 20
 	start = time.time()
 	vehicle.commands.goto(target)
@@ -71,9 +71,9 @@ def go_to(target):
 			time.sleep(0.5)
 
 def send_velocity_vector(velocity_x, velocity_y, velocity_z):
-	"""
-	Send a velocity vector for the vehicle to track.
-	"""
+    """
+    Send a velocity vector for the vehicle to track.
+    """
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
@@ -88,10 +88,10 @@ def send_velocity_vector(velocity_x, velocity_y, velocity_z):
     vehicle.flush()
 
 def condition_yaw(heading):
-	"""
-	Set the heading into a specific value regardless goto functions.
-	"""
-    msg = vehicle.message_factory.mission_item_encode(0, 0,  # target system, target component
+    """
+    Set the heading into a specific value regardless goto functions.
+    """
+	msg = vehicle.message_factory.mission_item_encode(0, 0,  # target system, target component
             0,     # sequence
             mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, # frame
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,         # command
