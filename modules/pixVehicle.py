@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pix-joystick.py -> Script that send the vehicle joystick override using data from a UDP server. """
+""" pixVehicle.py -> Module that contains several common functions for pixhawk vehicles. """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
@@ -14,17 +14,6 @@ __status__ = "Development"
 import time, math
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
-
-'''  To import own modules, you need to export the current path before importing the module.    '''
-'''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
-import os, sys
-sys.path.append(os.getcwd())
-import modules.UDPserver
-
-api = local_connect()
-vehicle = api.get_vehicles()[0]
-
-""" Functions to be implemented inside a module - todo """
 
 def arm_and_takeoff(aTargetAltitude):
 	"""
@@ -61,6 +50,9 @@ def arm_and_takeoff(aTargetAltitude):
 		time.sleep(1)
 
 def go_to(target):
+	"""
+	Function that makes the vehicle travel to an specific lat/lon location. Measures distance and if the target is reached.
+	"""
 	timeout = 20
 	start = time.time()
 	vehicle.commands.goto(target)
@@ -79,6 +71,9 @@ def go_to(target):
 			time.sleep(0.5)
 
 def send_velocity_vector(velocity_x, velocity_y, velocity_z):
+	"""
+	Send a velocity vector for the vehicle to track.
+	"""
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
@@ -93,6 +88,9 @@ def send_velocity_vector(velocity_x, velocity_y, velocity_z):
     vehicle.flush()
 
 def condition_yaw(heading):
+	"""
+	Set the heading into a specific value regardless goto functions.
+	"""
     msg = vehicle.message_factory.mission_item_encode(0, 0,  # target system, target component
             0,     # sequence
             mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, # frame
@@ -107,29 +105,3 @@ def condition_yaw(heading):
     # send command to vehicle
     vehicle.send_mavlink(msg)
     vehicle.flush()
-
-# Function to update commands and attitude to be called by a thread
-def joystick():
-    try:
-        while True:
-            if modules.UDPserver.active:
-                # Part for applying commands to the vehicle.
-                vehicle.channel_override = { "1" : modules.UDPserver.message[0], "2" : modules.UDPserver.message[1], \
-                                             "3" : modules.UDPserver.message[2], "4" : modules.UDPserver.message[3] }
-                vehicle.flush()
-                print "%s" % vehicle.attitude
-                print "%s" % vehicle.channel_readback
-                #print modules.UDPserver.message
-                #time.sleep(0.01) # Maybe not needed?
-    except Exception,error:
-        print "Error on joystick thread: "+str(error)
-        joystick()
-
-""" Mission starts here """
-try:
-    vehicleThread = threading.Thread(target=joystick)
-    vehicleThread.daemon=True
-    vehicleThread.start()
-    modules.UDPserver.startTwisted()
-except Exception,error:
-    print "Error on main: "+str(error)

@@ -41,7 +41,7 @@ while vehicle.mode.name is 'INITIALISING':
 
 while True:
 	print "%s" % vehicle.attitude
-	time.sleep(0.05)
+	time.sleep(0.009)
 
 
 
