@@ -19,56 +19,56 @@ def arm_and_takeoff(aTargetAltitude):
     """
     Arms vehicle and fly to aTargetAltitude.
     """
-	print "Basic pre-arm checks"
-	# Don't let the user try to fly autopilot is booting
-	if vehicle.mode.name == "INITIALISING":
-		print "Waiting for vehicle to initialise"
-		time.sleep(1)
-	while vehicle.gps_0.fix_type < 2:
-		print "Waiting for GPS...:", vehicle.gps_0.fix_type
-		time.sleep(1)
-		
-	print "Arming motors"
-	# Copter should arm in GUIDED mode
-	vehicle.mode    = VehicleMode("GUIDED")
-	vehicle.armed   = True
-	vehicle.flush()
+    print "Basic pre-arm checks"
+    # Don't let the user try to fly autopilot is booting
+    if vehicle.mode.name == "INITIALISING":
+        print "Waiting for vehicle to initialise"
+        time.sleep(1)
+    while vehicle.gps_0.fix_type < 2:
+        print "Waiting for GPS...:", vehicle.gps_0.fix_type
+        time.sleep(1)
+        
+    print "Arming motors"
+    # Copter should arm in GUIDED mode
+    vehicle.mode    = VehicleMode("GUIDED")
+    vehicle.armed   = True
+    vehicle.flush()
 
-	while not vehicle.armed and not api.exit:
-		print " Waiting for arming..."
-		time.sleep(1)
+    while not vehicle.armed and not api.exit:
+        print " Waiting for arming..."
+        time.sleep(1)
 
-	print "Taking off!"
-	vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
-	vehicle.flush()
+    print "Taking off!"
+    vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
+    vehicle.flush()
 
-	while not api.exit:
-		print " Altitude: ", vehicle.location.alt
-		if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
-			print "Reached target altitude"
-			break;
-		time.sleep(1)
+    while not api.exit:
+        print " Altitude: ", vehicle.location.alt
+        if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
+            print "Reached target altitude"
+            break;
+        time.sleep(1)
 
 def go_to(target):
     """
     Function that makes the vehicle travel to an specific lat/lon location. Measures distance and if the target is reached.
     """
-	timeout = 20
-	start = time.time()
-	vehicle.commands.goto(target)
-	vehicle.flush()
-	
-	while not api.exit:
-			current = time.time() - start
-			dTarget = math.sqrt(math.pow(target.lat-vehicle.location.lat,2)+math.pow(target.lon-vehicle.location.lon,2))
-			print " ->%0.2f Traveling to WP, distance = %f" % (current, dTarget)
-			if dTarget<=0.000005:
-					print "Reached target location"
-					break;
-			if current >= timeout:
-					print "Timeout to reach location"
-					break;
-			time.sleep(0.5)
+    timeout = 20
+    start = time.time()
+    vehicle.commands.goto(target)
+    vehicle.flush()
+    
+    while not api.exit:
+            current = time.time() - start
+            dTarget = math.sqrt(math.pow(target.lat-vehicle.location.lat,2)+math.pow(target.lon-vehicle.location.lon,2))
+            print " ->%0.2f Traveling to WP, distance = %f" % (current, dTarget)
+            if dTarget<=0.000005:
+                    print "Reached target location"
+                    break;
+            if current >= timeout:
+                    print "Timeout to reach location"
+                    break;
+            time.sleep(0.5)
 
 def send_velocity_vector(velocity_x, velocity_y, velocity_z):
     """
@@ -91,7 +91,7 @@ def condition_yaw(heading):
     """
     Set the heading into a specific value regardless goto functions.
     """
-	msg = vehicle.message_factory.mission_item_encode(0, 0,  # target system, target component
+    msg = vehicle.message_factory.mission_item_encode(0, 0,  # target system, target component
             0,     # sequence
             mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, # frame
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,         # command
