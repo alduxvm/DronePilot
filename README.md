@@ -8,7 +8,7 @@
 
 * mw-hover-controller.py -> Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate.
 
-* pix-logdata.py -> Script that logs data from a computer vision thread and from a flying multicopter with a Pixhawk. DroneApi related.
+* pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. DroneApi related.
 
 * pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related.
 
@@ -113,9 +113,11 @@ You can follow us in this URL's:
 
 For the 'pix-' scripts the following assumptions must be noted:
 
-* This script assumes that the pixhawk is connected to the raspeberry pi via the serial port (/dev/ttyAMA0)
+* This script assumes that the pixhawk is connected to the raspberry pi via the serial port (/dev/ttyAMA0)
 * In our setup, telemetry port 2 is configured at 115200 on the pixhawk
 * rpi camera connected (for computer vision) 
+
+## Utilities:
 
 #### ssh:
 
@@ -172,3 +174,23 @@ cmake .
 make install
 h264_v4l2_rtspserver -H <height> -W <width> -F <fps>
 ```
+
+#### updateDronePilot.sh 
+
+```
+#!/bin/bash
+
+echo "Deleting previous directory..."
+rm -rf DronePilot/
+echo "Done."
+echo "Cloning DronePilot repository: "
+git clone https://github.com/alduxvm/DronePilot.git
+echo "Copying mavinit.scr to proper directory..."
+mkdir DronePilot/TestQuad
+mv DronePilot/mavinit.scr DronePilot/TestQuad/
+echo "Done."
+echo "Ready to do: mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200 --aircraft TestQuad"
+echo "Dont forget to go inside the DronePilot directory."
+```
+
+
