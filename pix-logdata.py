@@ -35,8 +35,17 @@ import modules.pixVehicle
 api = local_connect()
 vehicle = api.get_vehicles()[0]
 
-# Function to manage data, print it and save it in a log 
 def logit():
+    """
+    Function to manage data, print it and save it in a csv file, to be run in a thread
+    """
+    while True:
+        if vehicle.armed and modules.UDPserver.active:
+            break
+        else:
+            print "Waiting for vehicle to be armed and/or UDP server to be active..."
+            time.sleep(0.5)
+
     try:
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
         f = open("logs/"+st, "w")
@@ -62,15 +71,15 @@ def logit():
 
 
 """ Section that starts the script """
+try:
+    logThread = threading.Thread(target=logit)
+    logThread.daemon=True
+    logThread.start()
+    udp.startTwisted()
+except Exception,error:
+    print "Error in main threads: "+str(error)
 
-udp.startTwisted()
 
-while True:
-	if vehicle.armed and modules.UDPserver.active:
-		logit()
-	else:
-		print "Waiting for vehicle to be armed and/or UDP server to be active..."
-		time.sleep(0.5)
 
 
 
