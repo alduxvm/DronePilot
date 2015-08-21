@@ -27,7 +27,7 @@ import time, threading
 '''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
 import os, sys
 sys.path.append(os.getcwd())
-import modules.UDPserver
+import modules.UDPserver as udp
 import modules.utils as utils
 import modules.pixVehicle
 
@@ -40,14 +40,14 @@ def joystick():
     """
     try:
         while True:
-            if modules.UDPserver.active:
+            if udp.active:
                 # Part for applying commands to the vehicle.
                 # Channel order in mavlink:   roll, pitch, throttle, yaw
                 # Channel order in optitrack: roll, pitch, yaw, throttle
-                roll     = modules.UDPserver.message[0]
-                pitch    = utils.mapping(modules.UDPserver.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
-                throttle = utils.mapping(modules.UDPserver.message[3],1000,2000,968,1998) # Map it to match RC configuration
-                yaw      = utils.mapping(modules.UDPserver.message[2],1000,2000,968,2062) # Map it to match RC configuration
+                roll     = udp.message[0]
+                pitch    = utils.mapping(udp.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
+                throttle = utils.mapping(udp.message[3],1000,2000,968,1998) # Map it to match RC configuration
+                yaw      = utils.mapping(udp.message[2],1000,2000,968,2062) # Map it to match RC configuration
                 vehicle.channel_override = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
                 vehicle.flush()
                 #print "%s" % vehicle.attitude
@@ -63,6 +63,6 @@ try:
     vehicleThread = threading.Thread(target=joystick)
     vehicleThread.daemon=True
     vehicleThread.start()
-    modules.UDPserver.startTwisted()
+    udp.startTwisted()
 except Exception,error:
     print "Error on main script thread: "+str(error)
