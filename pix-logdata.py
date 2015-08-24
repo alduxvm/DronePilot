@@ -73,10 +73,3 @@ try:
     udp.startTwisted()
 except Exception,error:
     print "Error in main threads: "+str(error)
-
-
-
-
-
-
-
