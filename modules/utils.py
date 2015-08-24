@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""utils.py: Several util functions needed in the DronePilot ecosystem."""
+"""utils.py: Several utilitarian functions needed in the DronePilot ecosystem."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"

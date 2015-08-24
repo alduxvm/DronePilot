@@ -4,13 +4,25 @@
 
 ## Current scripts:
 
+
+### MultiWii scripts:
+
 * mw-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software.
+
+[![Multiwii joystick (naze32)](http://img.youtube.com/vi/XyyfGp-IomE/0.jpg)](http://www.youtube.com/watch?v=XyyfGp-IomE)
 
 * mw-hover-controller.py -> Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate.
 
-* pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. DroneApi related.
 
-* pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related.
+### Pixhawk scripts:
+
+* pix-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a pixhawk. Dronekit related.
+
+[![Pixhawk joystick](http://img.youtube.com/vi/TkYeQ6orN8Y/0.jpg)](http://www.youtube.com/watch?v=TkYeQ6orN8Y)
+
+* pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. Dronekit related.
+
+* pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. Dronekit related.
 
 [![Example take-off](http://img.youtube.com/vi/KnjYYBKLK0s/0.jpg)](http://www.youtube.com/watch?v=KnjYYBKLK0s)
 
@@ -22,27 +34,25 @@
 
 ![Example velocity vector](http://www.aldux.net/images/velocity.png "SITL of this script working")
 
-* All the examples inside the folder "GrandChallenge" were used for the UAS Grand Challenge 2015 and they are dependant to our vehicle setup, but you can play with them using SITL. 
 
-[![UAS Grand Challenge, University of Glasgow entry](http://img.youtube.com/vi/ng31fPpnzgU/0.jpg)](http://www.youtube.com/watch?v=ng31fPpnzgU)
-
-* pix-joystick.py -> Script that send the vehicle joystick override using data from a UDP server.
-
-* pix-joystick-all-included.py -> Script that send the vehicle joystick override using data from a UDP server. Everything needed to run is in the script, due to failure to import modules inside mavproxy.py
 
 ## Supported flight controllers:
 
 * Multiwii boards (using MSP)
 
-* Pixhawk / PX4 / APM (using mavlink & drone API)
+* Pixhawk / PX4 / APM (using mavlink & drone kit)
+
+
 
 ## Supported companion computers: 
 
-* Raspberry Pi (currently in use)
+* Raspberry Pi
 
-* oDroid U3 (taking a rest)
+* oDroid U3 
 
 Note: Code is in python, so, any linux computer would be able tu run it.
+
+
 
 ## How to:
 

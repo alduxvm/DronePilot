@@ -10,6 +10,7 @@ __version__ = "1"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
+__video__ = "http://www.youtube.com/watch?v=XyyfGp-IomE"
 
 import time, threading
 from modules.pyMultiwii import MultiWii

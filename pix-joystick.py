@@ -10,19 +10,9 @@ __version__ = "1"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
-
-
-# Dependencies
-# * This script assumes that the pixhawk is connected to the raspberry pi via the serial port (/dev/ttyAMA0)
-# * In our setup, telemetry port 2 is configured at 115200 on the pixhawk
-
-# Usage:
-# * mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200 --aircraft TestQuad
-# * module load api
-# * api start pix-logdata.py
+__video__ = "http://www.youtube.com/watch?v=TkYeQ6orN8Y"
 
 import time, threading
-
 '''  To import own modules, you need to export the current path before importing the module.    '''
 '''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
 import os, sys
