@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-joystick-test.py: Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software."""
+""" mw-joystick.py: Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"

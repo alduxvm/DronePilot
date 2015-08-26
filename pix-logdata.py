@@ -30,8 +30,8 @@ def logit():
     Function to manage data, print it and save it in a csv file, to be run in a thread
     """
     while True:
-        if modules.UDPserver.active:
-            print "UDP server is active..."
+        if udp.active:
+            print "UDP server is active, starting..."
             break
         else:
             print "Waiting for UDP server to be active..."
@@ -39,7 +39,7 @@ def logit():
 
     try:
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-        f = open("logs/"+st, "w")
+        f = open("logs/"+"pix-"+st, "w")
         logger = csv.writer(f)
         logger.writerow(('timestamp','roll','pitch','yaw','vx','vy','vz','rc1','rc2','rc3','rc4','x','y','z'))
         while True:
