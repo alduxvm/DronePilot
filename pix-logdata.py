@@ -12,7 +12,7 @@ __maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time, threading, csv, datetime
+import time, datetime, csv, threading
 '''  To import own modules, you need to export the current path before importing the module.    '''
 '''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
 import os, sys
