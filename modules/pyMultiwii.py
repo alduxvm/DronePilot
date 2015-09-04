@@ -209,9 +209,10 @@ class MultiWii:
                 self.attitude['timestamp']="%0.2f" % (time.time(),) 
                 return self.attitude
             elif cmd == MultiWii.RC:
-                for value in self.rcChannels:
-                    self.rcChannels[value]=temp[i]
-                    i+=1
+                self.rcChannels['roll']=temp[0]
+                self.rcChannels['pitch']=temp[1]
+                self.rcChannels['yaw']=temp[2]
+                self.rcChannels['throttle']=temp[3]
                 self.rcChannels['elapsed']=round(elapsed,3)
                 self.rcChannels['timestamp']="%0.2f" % (time.time(),)
                 return self.rcChannels

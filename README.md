@@ -161,6 +161,7 @@ sudo ifup wlan0
 
 ```
 sudo apt-get install dhcp3-server
+/etc/dhcp/dhcpd.conf
 ```
 
 ```
@@ -174,6 +175,11 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
 }
 ```
 
+In case of failure starting DHCP:
+```
+sudo service ifplugd stop
+```
+
 #### Video
 
 ```
@@ -183,6 +189,11 @@ cd h264_v4l2_rtspserver
 cmake .
 make install
 h264_v4l2_rtspserver -H <height> -W <width> -F <fps>
+```
+
+To start:
+```
+rtsp://192.168.1.1:8554/unicast
 ```
 
 #### updateDronePilot.sh 
