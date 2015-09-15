@@ -214,4 +214,57 @@ echo "Ready to do: mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200 --aircraf
 echo "Dont forget to go inside the DronePilot directory."
 ```
 
+### Low latency video
 
+* Same DHCP configuration as before
+
+* Install "hostapd" 
+```
+sudo apt-get install hostapd netcat-traditional
+
+```
+
+* Interfaces:
+```
+auto wlan0
+iface wlan0 inet static
+  address 85.85.85.1
+  netmask 255.255.255.0
+```
+
+* /etc/hostapd/hostapd.conf 
+```
+interface=wlan0
+ssid=HDFPV
+hw_mode=g
+channel=6
+auth_algs=1
+wmm_enabled=0
+```
+
+* /etc/default/hostapd
+```
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+```
+
+* On rpi, create fifo file:
+```
+mkfifo fifo.500 
+```
+
+* On client (mac):
+```
+brew install netcat
+brew install mplayer
+```
+
+* To start (mac):
+```
+netcat -l -p 5000 | mplayer -fps 60 -cache 1024 -
+```
+
+* To start (rpi):
+```
+cat fifo.500 | nc.traditional 85.85.85.6 5000 &
+/opt/vc/bin/raspivid -o fifo.500 -t 0 -b 50000
+```
