@@ -11,9 +11,11 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time, datetime, threading, math, csv
+import time, datetime, threading, csv
+from math import *
+
 from modules.pyMultiwii import MultiWii
-import modules.utils as utils
+from modules.utils import *
 import modules.UDPserver as udp
 #from modules.pid import PID
 from modules.pids import PID_Controller
@@ -71,7 +73,7 @@ def control():
         while True:
             udp.active = True
             if udp.active:
-                # Read joysitck commands from the ground station
+                # Read joystick commands from the ground station
                 rcCMD[0] = udp.message[0]
                 rcCMD[1] = udp.message[1]
                 rcCMD[2] = udp.message[2]
@@ -94,32 +96,33 @@ def control():
                 #pPIDvalue = pitchPID.step(currentPos['y'])
                 # pid 4
                 rPIDvalue = rollPID.getCorrection(desiredPos['x'],currentPos['x'])
-                pPIDvalue = pitchPID.step(currentPos['y'])
+                pPIDvalue = pitchPID.getCorrection(desiredPos['y'],currentPos['y'])
 
                 # Check before flying that compass is calibrated
-                sinYaw = math.sin(math.radians( vehicle.attitude['heading'] ))
-                cosYaw = math.cos(math.radians( vehicle.attitude['heading'] ))
+                sinYaw = sin(radians( vehicle.attitude['heading'] ))
+                cosYaw = cos(radians( vehicle.attitude['heading'] ))
 
                 #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ))
                 #desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ))
 
                 # Mellinger paper
-                desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ),1)
-                desiredPitch = utils.toPWM(math.degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ),1)
+                desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g) ),1)
+                desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g) ),1)
 
                 # Murray 
                 #desiredRoll  = utils.toPWM(math.degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / utils.g) ),1)
                 #desiredPitch = utils.toPWM(math.degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / utils.g) ),1)
 
-                # Check automatic mode on joystick
+                # Check automatic mode on joystick and limit roll and pitch action
                 if udp.message[7] == 1:
-                    rcCMD[0] = desiredRoll
-                    rcCMD[1] = desiredPitch
+                    rcCMD[0] = limit(desiredRoll,1300,1700)
+                    rcCMD[1] = limit(desiredPitch,1300,1700)
 
                 # Make sure commands are inside the limits
-                rcCMD = [utils.limit(n,1000,2000) for n in rcCMD]
-                # Send commands to the multiwii and update vehicle attitude
-                vehicle.sendCMDreceiveATT(8,MultiWii.SET_RAW_RC,rcCMD)
+                rcCMD = [limit(n,1000,2000) for n in rcCMD]
+
+                # Send commands to the multiwii and update vehicle attitude (test!!!)
+                vehicle.sendCMDreceiveATT(16,MultiWii.SET_RAW_RC,rcCMD)
             else:
                 # Nothing to do but reset the rcCMD and the integrators (perhaps...)
                 rcCMD = [1500,1500,1500,1000]
@@ -131,26 +134,14 @@ def control():
         print "Error in control thread: "+str(error)
 
 # Function to manage data, print it and save it in a log 
-def logPrint():
+def logit():
     try:
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-        f = open("logs/"+st, "w")
+        f = open("logs/mw-hc-"+st, "w")
         logger = csv.writer(f)
-        logger.writerow(('timestamp','elapsed','angx','angy','heading','x','y','z','rcR','rcP','rcY','rcT','rPID','pPID'))
+        logger.writerow(('timestamp','elapsed','angx','angy','heading','x','y','z','roll','pitch','yaw','throttle','rPID','pPID'))
         while True:
             if udp.active:
-                # Manage data and create messages
-                #messATT = "angx = {:+.2f} \t angy = {:+.2f} \t heading = {:+.2f} ".format(float(board.attitude['angx']),float(board.attitude['angy']),float(board.attitude['heading']))
-                #messPOS = "x = {:+.2f} \t y = {:+.2f} \t z = {:+.2f} ".format(float(currentPos['x']),float(currentPos['y']),float(currentPos['z']))
-                #messPOS = "rE = {:+.2f} \t pE = {:+.2f} \t rPWM = {:.0f} \t pPWM = {:.0f} ".format(float(rPIDvalue),float(pPIDvalue),float(desiredRoll),float(desiredPitch)) 
-                #messLOG = str(board.attitude['timestamp']) + "," + str(board.attitude['elapsed']) + "," + \
-                #          str(board.attitude['angx']) + "," + str(board.attitude['angy']) + "," + str(board.attitude['heading']) + "," + \
-                #          str(currentPos['x']) + "," + str(currentPos['y']) + "," + str(currentPos['z']) + "," + \
-                #          str(rcCMD[0]) + "," + str(rcCMD[1]) + "," + str(rcCMD[2]) + "," + str(rcCMD[3]) + "," + \
-                #          str(rPIDvalue) + "," + str(pPIDvalue) 
-                # Print message
-                #print "x = %0.2f Roll = %d y = %0.2f Pitch = %d yaw= %0.2f" % (currentPos['x'],desiredRoll,currentPos['y'],desiredPitch,math.radians(vehicle.attitude['heading']))
-                #print "(%0.2f, %0.2f, %0.2f) | (%0.2f, %0.2f) | (%d, %d)" % (currentPos['x'],currentPos['y'],currentPos['z'],(rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / utils.g), (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / utils.g), desiredRoll, desiredPitch) 
                 # Save log
                 logger.writerow((vehicle.attitude['timestamp'],vehicle.attitude['elapsed'], \
                                  vehicle.attitude['angx'],vehicle.attitude['angy'],vehicle.attitude['heading'], \
@@ -159,7 +150,7 @@ def logPrint():
                                  rPIDvalue,pPIDvalue ))
                 time.sleep(0.0125) # To record data at 80hz exactly
     except Exception,error:
-        print "Error in logPrint thread: "+str(error)
+        print "Error in logit thread: "+str(error)
         f.close()
 
 if __name__ == "__main__":
@@ -167,7 +158,7 @@ if __name__ == "__main__":
         controlThread = threading.Thread(target=control)
         controlThread.daemon=True
         controlThread.start()
-        logThread = threading.Thread(target=logPrint)
+        logThread = threading.Thread(target=logit)
         logThread.daemon=True
         logThread.start()
         udp.startTwisted()

@@ -39,7 +39,7 @@ def logit():
 
     try:
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-        f = open("logs/"+"mw-"+st, "w")
+        f = open("logs/mw-"+st, "w")
         logger = csv.writer(f)
         logger.writerow(('timestamp','roll','pitch','yaw','proll','ppitch','throttle','pyaw','x','y','z'))
         while True:
