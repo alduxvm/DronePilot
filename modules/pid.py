@@ -95,7 +95,7 @@ class PID:
 
 if __name__ == "__main__":
     # create pid object P, I, D, IMAX
-	p = PID(4.65, 1.13, 4.5, 0, 0, 10)
+	p = PID(4.65, 1.13, 4.5, 0, 0, 10,-10)
 	p.setPoint(50.0)
 	for i in range (0, 100):
 		start = time.time()

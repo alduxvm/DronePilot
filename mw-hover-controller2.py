@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-logdata.py: Script that logs data from a vehicle with MultiWii flight controller and a MoCap system."""
+""" mw-hover-controller2.py: Script that calculates pitch and roll movements for a vehicle 
+    with MultiWii flight controller and a MoCap system in order to keep a specified position.
+"""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
@@ -12,16 +14,16 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, csv, threading
+from math import *
+from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
-from modules.utils import *
 from modules.pids import PID_Controller
 
 # MRUAV initialization
-#vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
 vehicle = MultiWii("/dev/ttyUSB0")
-
-vehicle.getData(MultiWii.ATTITUDE)
+#vehicle.getData(MultiWii.ATTITUDE)
+#heading = vehicle.attitude['heading']
 
 # Position coordinates [x, y, x] 
 desiredPos = {'x':0.0, 'y':0.0, 'z':0.0} # Set at the beginning (for now...)
@@ -33,14 +35,14 @@ desiredRoll = 1500
 desiredPitch = 1500
 
 # PID's initialization 
-gains = {'kp':1.0, 'ki':0.1, 'kd':0.01, 'iMax':1}
+rgains = {'kp':0.5, 'ki':0.0, 'kd':0.8, 'iMax':1}
+pgains = {'kp':0.5, 'ki':0.0, 'kd':0.8, 'iMax':1}
 rPIDvalue = 0.0
 pPIDvalue = 0.0
 
 # PID module pids
-rollPID = PID_Controller(gains['kp'], gains['ki'], gains['kd'])
-pitchPID = PID_Controller(gains['kp'], gains['ki'], gains['kd'])
-
+rollPID =  PID_Controller(rgains['kp'], rgains['ki'], rgains['kd'])
+pitchPID = PID_Controller(pgains['kp'], pgains['ki'], pgains['kd'])
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -75,44 +77,55 @@ def control():
             currentPos['y'] = udp.message[4]
             currentPos['z'] = udp.message[6]
 
+            vehicle.getData(MultiWii.ATTITUDE)
+
             rPIDvalue = rollPID.getCorrection(desiredPos['x'],currentPos['x'])
             pPIDvalue = pitchPID.getCorrection(desiredPos['y'],currentPos['y'])
 
             # Check before flying that compass is calibrated
-            sinYaw = sin(radians( vehicle.attitude['heading'] ))
-            cosYaw = cos(radians( vehicle.attitude['heading'] ))
+            sinYaw = 0
+            cosYaw = 1
 
             # Mellinger paper
-            desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
+            #desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
+            #desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
+
+            desiredRoll  = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
 
+            # Limit commands for safety
             if udp.message[7] == 1:
-                rcCMD[0] = limit(desiredRoll,1300,1700)
-                rcCMD[1] = limit(desiredPitch,1300,1700)
-
+                rcCMD[1] = limit(desiredRoll,1300,1700)
+                rcCMD[0] = limit(desiredPitch,1300,1700)
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
+            # Send command to vehicle
             vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
 
             #vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
             #time.sleep(0.005) # Time to allow the Naze32 respond the last attitude command
-            vehicle.getData(MultiWii.ATTITUDE)
-            vehicle.getData(MultiWii.RC)
+            #vehicle.getData(MultiWii.ATTITUDE)
+            #vehicle.getData(MultiWii.RC)
             #print "Time to ask two commands -> %0.3f" % (time.time()-elapsed)
-            #print "%s %s" % (vehicle.attitude,rcCMD) 
-            print "%s %s" % (vehicle.attitude,rcCMD) 
+            #print "%s %s" % (vehicle.attitude,rcCMD
+            print "%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
+                vehicle.attitude['angx'], vehicle.attitude['angy'], udp.message[10], \
+                currentPos['x'], currentPos['y'], currentPos['z'], \
+                rPIDvalue, pPIDvalue, \
+                int(rcCMD[0]), int(rcCMD[1]), \
+                int(desiredRoll), int(desiredPitch) ) 
 
             # Save log
-            logger.writerow((time.time(), \
-                             vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+            #logger.writerow((time.time(), \
+            #                 vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
                              #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
-                             udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
-                             udp.message[5], udp.message[4], udp.message[6] ))
+            #                 udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
+            #                 udp.message[5], udp.message[4], udp.message[6] ))
             time.sleep(0.01) # 100hz 
 
     except Exception,error:
         print "Error in control thread: "+str(error)
-        f.close()
+        #f.close()
 
 if __name__ == "__main__":
     try:
