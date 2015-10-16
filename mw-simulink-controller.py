@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-joystick.py: Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software."""
+""" mw-simulink-controller.py: Override RC commands with those of coming via UDP from a position-controller software done in Simulink."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "1.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
-__video__ = "http://www.youtube.com/watch?v=XyyfGp-IomE"
+__video__ = ""
 
 import time, threading
 from modules.pyMultiwii import MultiWii
@@ -29,13 +29,23 @@ def sendCommands():
     global vehicle, rcCMD
     try:
         while True:
-            if modules.UDPserver.active:
-                # Part for applying commands to the vehicle.
+            if udp.active:
+                # UDP message order:
+                # Jroll, Jpitch, Jyaw, Jthrottle, X, Y, Z, Button, roll, pitch, yaw, NotUsed, RCroll, RCpitch, RCyaw, RCthrottle, RCaux1, RCaux2, RCaux3, RCaux4, NotUsed
+                
                 # Joystick manual commands
                 rcCMD[0] = udp.message[0] # Roll
                 rcCMD[1] = udp.message[1] # Pitch
                 rcCMD[2] = udp.message[2] # Yaw
                 rcCMD[3] = udp.message[3] # Throttle
+
+                # If joystick button is on green (activated) then simulink is in charge. TODO: Check order of channels.
+                if udp.message[7] == 1:
+                    rcCMD[0] = udp.message[12] # Roll
+                    rcCMD[1] = udp.message[13] # Pitch
+                    #rcCMD[2] = udp.message[14] # Yaw
+                    #rcCMD[3] = udp.message[15] # Throttle
+                
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
                 #print udp.message
                 time.sleep(0.008) # 125 hz

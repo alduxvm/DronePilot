@@ -46,6 +46,6 @@ class twistedUDP(DatagramProtocol):
 
 def startTwisted():
     l = task.LoopingCall(timeout)
-    l.start(0.5) # Check for disconnection each 0.1 and send neutral commands
+    l.start(0.5) # Check for disconnection each 0.5 and send neutral commands
     reactor.listenUDP(UDPport, twistedUDP())
     reactor.run()
