@@ -41,7 +41,7 @@ def logit():
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
         f = open("logs/mw-"+st, "w")
         logger = csv.writer(f)
-        logger.writerow(('timestamp','roll','pitch','yaw','proll','ppitch','throttle','pyaw','x','y','z'))
+        logger.writerow(('timestamp','roll','pitch','yaw','proll','ppitch','throttle','pyaw','x','y','z','attx','atty','attz'))
         while True:
             #elapsed = time.time()
             rcCMD[0] = udp.message[0]
@@ -50,19 +50,22 @@ def logit():
             rcCMD[3] = udp.message[3]
             #vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
             #time.sleep(0.005) # Time to allow the Naze32 respond the last attitude command
-            vehicle.getData(MultiWii.ATTITUDE)
-            vehicle.getData(MultiWii.RC)
+            #vehicle.getData(MultiWii.ATTITUDE)
+            #vehicle.getData(MultiWii.RC)
+            vehicle.getData(MultiWii.RAW_IMU)
             #print "Time to ask two commands -> %0.3f" % (time.time()-elapsed)
             #print "%s %s" % (vehicle.attitude,rcCMD) 
-            print "%s %s" % (vehicle.attitude,vehicle.rcChannels) 
+            print "%s %s" % (vehicle.rawIMU,udp.message) 
 
             # Save log
             logger.writerow((time.time(), \
-                             vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                             #vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                             vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
                              #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
                              udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
+                             udp.message[8], udp.message[9], udp.message[10], \
                              udp.message[5], udp.message[4], udp.message[6] ))
-            time.sleep(0.01) # 100hz 
+            time.sleep(0.008) # 100hz 
 
     except Exception,error:
         print "Error in logit thread: "+str(error)

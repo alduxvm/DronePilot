@@ -43,12 +43,12 @@ def sendCommands():
                 if udp.message[7] == 1:
                     rcCMD[0] = udp.message[12] # Roll
                     rcCMD[1] = udp.message[13] # Pitch
-                    #rcCMD[2] = udp.message[14] # Yaw
-                    #rcCMD[3] = udp.message[15] # Throttle
+                    rcCMD[2] = udp.message[14] # Yaw
+                    rcCMD[3] = udp.message[15] # Throttle
                 
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
-                #print udp.message
-                time.sleep(0.008) # 125 hz
+                print udp.message
+                time.sleep(0.0125) # 80 hz
             #else: 
                 # Part for landing and disarming.
                 #print modules.UDPserver.message

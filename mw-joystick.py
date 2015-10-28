@@ -29,7 +29,7 @@ def sendCommands():
     global vehicle, rcCMD
     try:
         while True:
-            if modules.UDPserver.active:
+            if udp.active:
                 # Part for applying commands to the vehicle.
                 # Joystick manual commands
                 rcCMD[0] = udp.message[0] # Roll
