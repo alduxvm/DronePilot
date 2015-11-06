@@ -6,13 +6,13 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.5"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 __video__ = ""
 
-import time, threading
+import time, threading, datetime, csv
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 
@@ -28,8 +28,14 @@ vehicle = MultiWii("/dev/ttyUSB0")
 def sendCommands():
     global vehicle, rcCMD
     try:
+        # Open file to start logging
+        st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
+        f = open("logs/mw-simulink-"+st, "w")
+        logger = csv.writer(f)
+        logger.writerow(('timestamp','ax','ay','az','gx','gy','gz','x','y','z','attx','atty','attz','Sroll','Spitch','Syaw','Sthrottle'))
         while True:
             if udp.active:
+                current = time.time()
                 # UDP message order:
                 # Jroll, Jpitch, Jyaw, Jthrottle, X, Y, Z, Button, roll, pitch, yaw, NotUsed, RCroll, RCpitch, RCyaw, RCthrottle, RCaux1, RCaux2, RCaux3, RCaux4, NotUsed
                 
@@ -39,7 +45,7 @@ def sendCommands():
                 rcCMD[2] = udp.message[2] # Yaw
                 rcCMD[3] = udp.message[3] # Throttle
 
-                # If joystick button is on green (activated) then simulink is in charge. TODO: Check order of channels.
+                # If joystick button is on green (activated) then simulink is in charge. 
                 if udp.message[7] == 1:
                     rcCMD[0] = udp.message[12] # Roll
                     rcCMD[1] = udp.message[13] # Pitch
@@ -47,6 +53,19 @@ def sendCommands():
                     rcCMD[3] = udp.message[15] # Throttle
                 
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
+                time.sleep(0.005)
+                vehicle.getData(MultiWii.RAW_IMU)
+
+                row =   (current, \
+                        #vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                        vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
+                        #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
+                        #udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
+                        udp.message[4], udp.message[5], udp.message[6], \
+                        udp.message[8], udp.message[9], udp.message[10] \
+                        udp.message[12], udp.message[13], udp.message[14], udp.message[15])
+                logger.writerow(row)
+
                 print udp.message
                 time.sleep(0.0125) # 80 hz
             #else: 
