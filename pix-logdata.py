@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "1.5"
 __maintainer__ = "Aldo Vargas"
 __maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
@@ -44,18 +44,24 @@ def logit():
         logger.writerow(('timestamp','roll','pitch','yaw','vx','vy','vz','rc1','rc2','rc3','rc4','x','y','z'))
         while True:
             if vehicle.armed:
+                current = time.time()
+                elapsed = 0
                 # Print message
-                print "Roll = %0.4f Pitch = %0.4f Yaw= %0.4f" % (vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw)
-                print "Vx = %0.4f Vy = %0.4f Vz= %0.4f" % (vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2])
-                print "RC1 = %d RC2 = %d RC3 = %d  RC4 = %d " % (vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'])
-                print "X = %0.2f Y = %0.2f Z = %0.2f" % (udp.message[5], udp.message[4], udp.message[6])
+                #print "Roll = %0.4f Pitch = %0.4f Yaw= %0.4f" % (vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw)
+                #print "Vx = %0.4f Vy = %0.4f Vz= %0.4f" % (vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2])
+                #print "RC1 = %d RC2 = %d RC3 = %d  RC4 = %d " % (vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'])
+                #print "X = %0.2f Y = %0.2f Z = %0.2f" % (udp.message[5], udp.message[4], udp.message[6])
                 # Save log
-                logger.writerow((time.time(), \
-                                 vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
-                                 vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2], \
-                                 vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'], \
-                                 udp.message[5], udp.message[4], udp.message[6] ))
-                time.sleep(0.01) # To record data at 100hz exactly
+                row =   (current, \
+                        vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+                        vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2], \
+                        vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'], \
+                        udp.message[5], udp.message[4], udp.message[6] ))
+                logger.writerow(row)
+                # 100hz loop
+                while elapsed < 0.01:
+                    elapsed = time.time() - current
+                # End of the main loop
             else:
                 print "Waiting for vehicle to be armed to save data..."
                 time.sleep(0.5)

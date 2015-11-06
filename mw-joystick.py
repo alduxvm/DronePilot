@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "1.6"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -30,6 +30,8 @@ def sendCommands():
     try:
         while True:
             if udp.active:
+                current = time.time()
+                elapsed = 0
                 # Part for applying commands to the vehicle.
                 # Joystick manual commands
                 rcCMD[0] = udp.message[0] # Roll
@@ -37,13 +39,11 @@ def sendCommands():
                 rcCMD[2] = udp.message[2] # Yaw
                 rcCMD[3] = udp.message[3] # Throttle
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
-                #print udp.message
-                time.sleep(0.008) # 125 hz
-            #else: 
-                # Part for landing and disarming.
-                #print modules.UDPserver.message
-                #print "Landing!"
-                #time.sleep(1)
+                print udp.message # Just to display some data, not really needed.
+                # 100hz loop
+                while elapsed < 0.01:
+                    elapsed = time.time() - current
+                # End of the main loop
     except Exception,error:
         print "Error on sendCommands thread: "+str(error)
         sendCommands()

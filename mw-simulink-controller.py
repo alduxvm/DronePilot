@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "1.6"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -35,7 +35,10 @@ def sendCommands():
         logger.writerow(('timestamp','ax','ay','az','gx','gy','gz','x','y','z','attx','atty','attz','Sroll','Spitch','Syaw','Sthrottle'))
         while True:
             if udp.active:
+                # Timers
                 current = time.time()
+                elapsed = 0
+
                 # UDP message order:
                 # Jroll, Jpitch, Jyaw, Jthrottle, X, Y, Z, Button, roll, pitch, yaw, NotUsed, RCroll, RCpitch, RCyaw, RCthrottle, RCaux1, RCaux2, RCaux3, RCaux4, NotUsed
                 
@@ -52,8 +55,9 @@ def sendCommands():
                     rcCMD[2] = udp.message[14] # Yaw
                     rcCMD[3] = udp.message[15] # Throttle
                 
+                # Vehicle communication
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
-                #time.sleep(0.005)
+                #time.sleep(0.005) # Apparently not needed, leaved just in case.
                 vehicle.getData(MultiWii.RAW_IMU)
 
                 row =   (current, \
@@ -67,15 +71,11 @@ def sendCommands():
                 logger.writerow(row)
 
                 # 100hz loop
-                while (time.time()-current) < 0.01:
-                    pass
+                while elapsed < 0.01:
+                    elapsed = time.time() - current
                 print udp.message
-                #time.sleep(0.0125) # 80 hz
-            #else: 
-                # Part for landing and disarming.
-                #print modules.UDPserver.message
-                #print "Landing!"
-                #time.sleep(1)
+                # End of the main loop
+
     except Exception,error:
         print "Error on sendCommands thread: "+str(error)
         sendCommands()

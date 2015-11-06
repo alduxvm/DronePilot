@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "1.5"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -43,7 +43,8 @@ def logit():
         logger = csv.writer(f)
         logger.writerow(('timestamp','roll','pitch','yaw','proll','ppitch','throttle','pyaw','x','y','z','attx','atty','attz'))
         while True:
-            #elapsed = time.time()
+            current = time.time()
+            elapsed = 0
             rcCMD[0] = udp.message[0]
             rcCMD[1] = udp.message[1]
             rcCMD[2] = udp.message[2]
@@ -58,14 +59,19 @@ def logit():
             print "%s %s" % (vehicle.rawIMU,udp.message) 
 
             # Save log
-            logger.writerow((time.time(), \
-                             #vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
-                             vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
-                             #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
-                             udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
-                             udp.message[8], udp.message[9], udp.message[10], \
-                             udp.message[5], udp.message[4], udp.message[6] ))
-            time.sleep(0.008) # 100hz 
+            row =   (time.time(), \
+                    #vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                    vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
+                    #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
+                    udp.message[0], udp.message[1], udp.message[3], udp.message[2], \
+                    udp.message[8], udp.message[9], udp.message[10], \
+                    udp.message[5], udp.message[4], udp.message[6] )
+            logger.writerow(row)
+
+            # 100hz loop
+            while elapsed < 0.01:
+                elapsed = time.time() - current
+            # End of the main loop
 
     except Exception,error:
         print "Error in logit thread: "+str(error)
