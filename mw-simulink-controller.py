@@ -53,7 +53,7 @@ def sendCommands():
                     rcCMD[3] = udp.message[15] # Throttle
                 
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
-                time.sleep(0.005)
+                #time.sleep(0.005)
                 vehicle.getData(MultiWii.RAW_IMU)
 
                 row =   (current, \
@@ -66,8 +66,11 @@ def sendCommands():
                         udp.message[12], udp.message[13], udp.message[14], udp.message[15])
                 logger.writerow(row)
 
+                # 100hz loop
+                while (time.time()-current) < 0.01:
+                    pass
                 print udp.message
-                time.sleep(0.0125) # 80 hz
+                #time.sleep(0.0125) # 80 hz
             #else: 
                 # Part for landing and disarming.
                 #print modules.UDPserver.message
