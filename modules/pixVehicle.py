@@ -105,3 +105,13 @@ def condition_yaw(heading):
     # send command to vehicle
     vehicle.send_mavlink(msg)
     vehicle.flush()
+
+def move_servo(port,value):
+    """
+    Function that moves a servo from a specified port and value
+    port  -> port where the servo is attached
+    value -> servo ms value, from 1000 - 2000
+    """
+    msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, port, value, 0, 0, 0, 0, 0)
+    vehicle.send_mavlink(msg)
+    vehicle.flush()

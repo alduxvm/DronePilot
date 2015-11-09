@@ -19,11 +19,19 @@ import os, sys
 sys.path.append(os.getcwd())
 import modules.UDPserver as udp
 import modules.utils as utils
+import modules.vision
 import modules.pixVehicle
 
 # Vehicle initialization
 api = local_connect()
 vehicle = api.get_vehicles()[0]
+
+def colortracking():
+    """
+    Function that creates a color tracker and put the X and Y of the object found on global variables
+    to be used on other threads.
+    """
+    
 
 def logit():
     """
@@ -58,6 +66,8 @@ def logit():
                         vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'], \
                         udp.message[5], udp.message[4], udp.message[6] )
                 logger.writerow(row)
+
+
                 # 100hz loop
                 while elapsed < 0.01:
                     elapsed = time.time() - current
