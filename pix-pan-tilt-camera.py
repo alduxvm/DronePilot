@@ -107,6 +107,30 @@ class ColorTracker:
 
 color_tracker = ColorTracker('white',False,resX,resY)
 
+""" Function to map a value to another """
+def toPWM(value, option):
+    iMin = -50
+    iMax = 50
+    if option == 1: # Normal
+        oMin = 1000
+        oMax = 2000
+    elif option == -1: # Inverted
+        oMin = 2000
+        oMax = 1000
+    return round((value - iMin) * (oMax - oMin) / (iMax - iMin) + oMin, 0)
+
+
+def move_servo(port,value):
+    """
+    Function that moves a servo from a specified port and value
+    port  -> port where the servo is attached
+    value -> servo ms value, from 1000 - 2000
+    """
+    msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, port, value, 0, 0, 0, 0, 0)
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
+
 def logit():
     """
     Function to manage data, print it and save it in a csv file, to be run in a thread
@@ -129,17 +153,18 @@ def logit():
                 current = time.time()
                 elapsed = 0
                 # Print message
-                if color_tracker.position['found']:
-                    pan_pulse  = (color_tracker.position['x']-(resX/2))*Xpixelratio
-                    tilt_pulse = (color_tracker.position['y']-(resY/2))*Ypixelratio
-                    vehicle.move_servo(Pport,pan_pulse)
-                    vehicle.move_servo(Tport,tilt_pulse)
+                print color_tracker.tracker
+                if color_tracker.tracker['found']:
+                    pan_pulse  = toPWM(color_tracker.tracker['x'],1)
+                    tilt_pulse = toPWM(color_tracker.tracker['y'],1)
+                    vehicle.move_servo(1,pan_pulse)
+                    vehicle.move_servo(2,tilt_pulse)
                 else:
                     vehicle.move_servo(Pport,1500)
                     vehicle.move_servo(Tport,1500)
 
                 # 100hz loop
-                while elapsed < 0.01:
+                while elapsed < 0.02:
                     elapsed = time.time() - current
                 # End of the main loop
             else:
