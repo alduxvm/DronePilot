@@ -18,9 +18,11 @@ import time, datetime, csv, threading
 import os, sys
 sys.path.append(os.getcwd())
 import modules.UDPserver as udp
-import modules.utils as utils
-import modules.vision
-import modules.pixVehicle
+#import modules.utils as utils
+#import modules.vision
+#import modules.pixVehicle
+import numpy as np
+import cv2
 
 # Vehicle initialization
 api = local_connect()
@@ -29,7 +31,6 @@ vehicle = api.get_vehicles()[0]
 # Camera stuff
 resX = 640
 resY = 480
-
 
 class ColorTracker:
     def __init__(self, targetcolor, show, width, height):
@@ -93,7 +94,7 @@ class ColorTracker:
                     #Check correct width with X and height with Y
                     self.tracker['serx'] = round((self.tracker['x']-(self.width/2.0))*(50.0/(self.width/2)),3)
                     self.tracker['sery'] = round((self.tracker['y']-(self.height/2.0))*(50.0/(self.height/2)),3)
-                    print self.tracker
+                    #print self.tracker
                     #print "detection time = %gs x=%d,y=%d" % ( round(t2-t1,3) , x, y)
                     cv2.imshow("ColorTrackerWindow", orig_img)   
                     if cv2.waitKey(20) == 27:
@@ -103,7 +104,7 @@ class ColorTracker:
             else:
                 cv2.imshow("ColorTrackerWindow", orig_img)
                 self.tracker['found']=False
-                print self.tracker
+                #print self.tracker
 
 color_tracker = ColorTracker('white',False,resX,resY)
 
@@ -131,12 +132,17 @@ def move_servo(port,value):
     vehicle.flush()
 
 
+def move_servos(pan,tilt):
+    vehicle.channel_override = { "6" : pan, "7" : tilt }  
+    vehicle.flush()
+
+
 def logit():
     """
     Function to manage data, print it and save it in a csv file, to be run in a thread
     """
     while True:
-        if udp.active:
+        if True:#udp.active:
             print "UDP server is active, starting..."
             break
         else:
@@ -156,12 +162,12 @@ def logit():
                 print color_tracker.tracker
                 if color_tracker.tracker['found']:
                     pan_pulse  = toPWM(color_tracker.tracker['x'],1)
-                    tilt_pulse = toPWM(color_tracker.tracker['y'],1)
-                    vehicle.move_servo(1,pan_pulse)
-                    vehicle.move_servo(2,tilt_pulse)
+                    tilt_pulse = toPWM(color_tracker.tracker['y'],-1)
+                    #vehicle.move_servo(1,pan_pulse)
+                    #vehicle.move_servo(2,tilt_pulse)
+                    move_servos(pan_pulse,tilt_pulse)
                 else:
-                    vehicle.move_servo(Pport,1500)
-                    vehicle.move_servo(Tport,1500)
+                    move_servos(1500,1500)
 
                 # 100hz loop
                 while elapsed < 0.02:
@@ -184,7 +190,7 @@ try:
     visionThread = threading.Thread(target=color_tracker.findColor)
     visionThread.daemon=True
     visionThread.start()
-    #visionThread.join()
+    visionThread.join()
     udp.startTwisted()
 except Exception,error:
     print "Error in main threads: "+str(error)
