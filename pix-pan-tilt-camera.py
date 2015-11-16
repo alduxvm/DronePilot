@@ -26,12 +26,11 @@ import modules.pixVehicle
 api = local_connect()
 vehicle = api.get_vehicles()[0]
 
-def colortracking():
-    """
-    Function that creates a color tracker and put the X and Y of the object found on global variables
-    to be used on other threads.
-    """
-    
+# Camera stuff
+resX = 640
+resY = 480
+
+color_tracker = ColorTracker('white',False,resX,resY)
 
 def logit():
     """
@@ -55,18 +54,14 @@ def logit():
                 current = time.time()
                 elapsed = 0
                 # Print message
-                print "Roll = %0.4f Pitch = %0.4f Yaw= %0.4f" % (vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw)
-                #print "Vx = %0.4f Vy = %0.4f Vz= %0.4f" % (vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2])
-                #print "RC1 = %d RC2 = %d RC3 = %d  RC4 = %d " % (vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'])
-                #print "X = %0.2f Y = %0.2f Z = %0.2f" % (udp.message[5], udp.message[4], udp.message[6])
-                # Save log
-                row =   (current, \
-                        vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
-                        vehicle.velocity[0], vehicle.velocity[1], vehicle.velocity[2], \
-                        vehicle.channel_readback['1'], vehicle.channel_readback['2'], vehicle.channel_readback['3'], vehicle.channel_readback['4'], \
-                        udp.message[5], udp.message[4], udp.message[6] )
-                logger.writerow(row)
-
+                if color_tracker.position['found']:
+                    pan_pulse  = (color_tracker.position['x']-(resX/2))*Xpixelratio
+                    tilt_pulse = (color_tracker.position['y']-(resY/2))*Ypixelratio
+                    vehicle.move_servo(Pport,pan_pulse)
+                    vehicle.move_servo(Tport,tilt_pulse)
+                else:
+                    vehicle.move_servo(Pport,1500)
+                    vehicle.move_servo(Tport,1500)
 
                 # 100hz loop
                 while elapsed < 0.01:
@@ -86,6 +81,10 @@ try:
     logThread = threading.Thread(target=logit)
     logThread.daemon=True
     logThread.start()
+    visionThread = threading.Thread(target=color_tracker.findColor)
+    visionThread.daemon=True
+    visionThread.start()
+    #visionThread.join()
     udp.startTwisted()
 except Exception,error:
     print "Error in main threads: "+str(error)
