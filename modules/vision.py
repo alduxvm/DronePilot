@@ -19,7 +19,6 @@ import time
 
 class ColorTracker:
     def __init__(self, targetcolor, show, width, height):
-        cv2.namedWindow("ColorTrackerWindow", cv2.CV_WINDOW_AUTOSIZE)
         self.capture = cv2.VideoCapture(0)
         #self.capture = cv2.VideoCapture('crash-480.mp4')
         self.tracker = {'color':targetcolor,'found':False,'x':0.0,'y':0.0,'serx':0.0,'sery':0.0,'elapsed':0.0}
@@ -30,6 +29,8 @@ class ColorTracker:
         self.capture.set(3,self.width)
         self.capture.set(4,self.height)
         self.scale_down = 4
+        if self.show:
+            cv2.namedWindow("ColorTrackerWindow", cv2.CV_WINDOW_AUTOSIZE)
     def findColor(self):
         while True:
             t1 = time.time()
@@ -79,14 +80,17 @@ class ColorTracker:
                     #Check correct width with X and height with Y
                     self.tracker['serx'] = round((self.tracker['x']-(self.width/2.0))*(50.0/(self.width/2)),3)
                     self.tracker['sery'] = round((self.tracker['y']-(self.height/2.0))*(50.0/(self.height/2)),3)
-                    #print self.tracker
+                    print self.tracker
                     #print "detection time = %gs x=%d,y=%d" % ( round(t2-t1,3) , x, y)
-                    cv2.imshow("ColorTrackerWindow", orig_img)   
+                    if self.show:
+                        cv2.imshow("ColorTrackerWindow", orig_img)   
                     if cv2.waitKey(20) == 27:
-                        cv2.destroyWindow("ColorTrackerWindow")
+                        if self.show:
+                            cv2.destroyWindow("ColorTrackerWindow")
                         self.capture.release()
                         break
             else:
-                cv2.imshow("ColorTrackerWindow", orig_img)
+                if self.show:
+                    cv2.imshow("ColorTrackerWindow", orig_img)
                 self.tracker['found']=False
-                #print self.tracker
+                print self.tracker
