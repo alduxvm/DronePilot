@@ -79,7 +79,7 @@ class ColorTracker:
                     #Check correct width with X and height with Y
                     self.tracker['serx'] = round((self.tracker['x']-(self.width/2.0))*(50.0/(self.width/2)),3)
                     self.tracker['sery'] = round((self.tracker['y']-(self.height/2.0))*(50.0/(self.height/2)),3)
-                    print self.tracker
+                    #print self.tracker
                     #print "detection time = %gs x=%d,y=%d" % ( round(t2-t1,3) , x, y)
                     cv2.imshow("ColorTrackerWindow", orig_img)   
                     if cv2.waitKey(20) == 27:
@@ -89,4 +89,4 @@ class ColorTracker:
             else:
                 cv2.imshow("ColorTrackerWindow", orig_img)
                 self.tracker['found']=False
-                print self.tracker
+                #print self.tracker
