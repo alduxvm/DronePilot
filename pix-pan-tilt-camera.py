@@ -21,8 +21,6 @@ import modules.UDPserver as udp
 from modules.utils import toPWM
 from modules.vision import ColorTracker
 from modules.pixVehicle import move_servo
-import numpy as np
-import cv2
 
 # Vehicle initialization
 api = local_connect()
