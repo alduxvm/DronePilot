@@ -19,6 +19,7 @@ from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 from modules.pid import PID
+from modules.pid2 import PID_Controller
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -33,12 +34,16 @@ currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
 desiredRoll = 1500
 desiredPitch = 1500
+desiredRoll2 = 1500
+desiredPitch2 = 1500
 
 # PID's initialization 
 rgains = {'kp':0.5, 'ki':0.0, 'kd':0.8, 'iMax':1}
 pgains = {'kp':0.5, 'ki':0.0, 'kd':0.8, 'iMax':1}
 rPIDvalue = 0.0
 pPIDvalue = 0.0
+rPIDvalue2 = 0.0
+pPIDvalue2 = 0.0
 
 # PID module pids
 rollPID =  PID(rgains['kp'], rgains['ki'], rgains['kd'], 0, 0, rgains['iMax'], -rgains['iMax'])
@@ -46,10 +51,14 @@ rollPID.setPoint(desiredPos['x'])
 pitchPID = PID(pgains['kp'], pgains['ki'], pgains['kd'], 0, 0, pgains['iMax'], -pgains['iMax'])
 pitchPID.setPoint(desiredPos['y'])
 
+rollPID2  = PID_Controller(rgains['kp'], rgains['ki'], rgains['kd'])
+pitchPID2 = PID_Controller(pgains['kp'], pgains['ki'], pgains['kd'])
+
 # Function to update commands and attitude to be called by a thread
 def control():
     global vehicle, rcCMD
     global rollPID, pitchPID
+    global rollPID2, pitchPID2
     global desiredPos, currentPos
     global desiredRoll, desiredPitch
     global rPIDvalue, pPIDvalue
@@ -93,6 +102,9 @@ def control():
             rPIDvalue = rollPID.update(currentPos['x'])
             pPIDvalue = pitchPID.update(currentPos['y'])
 
+            rPIDvalue2 = rollPID2.getCorrection(desiredPos['x'],currentPos['x'])
+            pPIDvalue2 = pitchPID2.getCorrection(desiredPos['y'],currentPos['y'])
+
             # Heading update
             heading = udp.message[8]
             sinYaw = sin(heading)
@@ -101,9 +113,13 @@ def control():
             # Mellinger paper
             desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredRoll2  = toPWM(degrees( (rPIDvalue2 * sinYaw - pPIDvalue2 * cosYaw) * (1 / g) ),1)
+            desiredPitch2 = toPWM(degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / g) ),1)
 
             #desiredRoll  = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             #desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
+            #desiredRoll2  = toPWM(degrees( (pPIDvalue2 * cosYaw - rPIDvalue2 * sinYaw) * (1 / g) ),1)
+            #desiredPitch2 = toPWM(degrees( (rPIDvalue2 * cosYaw + pPIDvalue2 * sinYaw) * (1 / g) ),1)
 
             # Limit commands for safety
             if udp.message[7] == 1:
@@ -120,10 +136,9 @@ def control():
             #vehicle.getData(MultiWii.RC)
             #print "Time to ask two commands -> %0.3f" % (time.time()-elapsed)
             #print "%s %s" % (vehicle.attitude,rcCMD
-            print "%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
-                vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], heading, \
-                currentPos['x'], currentPos['y'], currentPos['z'], \
-                rPIDvalue, pPIDvalue, \
+            print "%.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
+                vehicle.attitude['heading'], heading, \
+                currentPos['x'], currentPos['y'], \
                 int(rcCMD[0]), int(rcCMD[1]), \
                 int(desiredRoll), int(desiredPitch) ) 
 
