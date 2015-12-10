@@ -15,6 +15,7 @@ __video__ = ""
 import time, threading, datetime, csv
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
+from modules.utils import *
 
 # RC commnads to be sent to the MultiWii 
 # Order: roll, pitch, yaw, throttle, aux1, aux2, aux3, aux4
@@ -41,7 +42,7 @@ def sendCommands():
         process_variance = 1e-3
         estimated_measurement_variance = 16
         kalman_filter = KalmanFilter(process_variance, estimated_measurement_variance)
-        kalman_yaw = []
+        kalman_yaw = 0
         while True:
             if udp.active:
                 # Timers
@@ -69,14 +70,14 @@ def sendCommands():
 
                 # Kalman update
                 kalman_filter.input_latest_noisy_measurement(vehicle.attitude['heading'])
-                kalman_yaw.append(kalman_filter.get_latest_estimated_measurement())
+                kalman_yaw = kalman_filter.get_latest_estimated_measurement()
                 #time.sleep(0.005) # Apparently not needed, leaved just in case.
 
                 # Update attitude
                 vehicle.getData(MultiWii.ATTITUDE)
 
                 row =   (current, \
-                        vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                        vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], kalman_yaw, \
                         #vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
                         #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
                         #udp.message[0], udp.message[1], udp.message[3], udp.message[2], \

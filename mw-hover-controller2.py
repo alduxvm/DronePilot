@@ -18,12 +18,12 @@ from math import *
 from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
-from modules.pids import PID_Controller
+from modules.pid import PID
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
-#vehicle.getData(MultiWii.ATTITUDE)
-#heading = vehicle.attitude['heading']
+vehicle.getData(MultiWii.ATTITUDE)
+heading = vehicle.attitude['heading']
 
 # Position coordinates [x, y, x] 
 desiredPos = {'x':0.0, 'y':0.0, 'z':0.0} # Set at the beginning (for now...)
@@ -41,8 +41,10 @@ rPIDvalue = 0.0
 pPIDvalue = 0.0
 
 # PID module pids
-rollPID =  PID_Controller(rgains['kp'], rgains['ki'], rgains['kd'])
-pitchPID = PID_Controller(pgains['kp'], pgains['ki'], pgains['kd'])
+rollPID =  PID(rgains['kp'], rgains['ki'], rgains['kd'], 0, 0, rgains['iMax'], -rgains['iMax'])
+rollPID.setPoint(desiredPos['x'])
+pitchPID = PID(pgains['kp'], pgains['ki'], pgains['kd'], 0, 0, pgains['iMax'], -pgains['iMax'])
+pitchPID.setPoint(desiredPos['y'])
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -65,6 +67,10 @@ def control():
         #f = open("logs/mw-"+st, "w")
         #logger = csv.writer(f)
         #logger.writerow(('timestamp','roll','pitch','yaw','proll','ppitch','throttle','pyaw','x','y','z'))
+        process_variance = 1e-3
+        estimated_measurement_variance = 16
+        kalman_filter = KalmanFilter(process_variance, estimated_measurement_variance)
+        kalman_yaw = 0
         while True:
             #elapsed = time.time()
             rcCMD[0] = udp.message[0]
@@ -77,14 +83,18 @@ def control():
             currentPos['y'] = udp.message[4]
             currentPos['z'] = udp.message[6]
 
+            # Kalman update
+            kalman_filter.input_latest_noisy_measurement(vehicle.attitude['heading'])
+            kalman_yaw = kalman_filter.get_latest_estimated_measurement()
+
             vehicle.getData(MultiWii.ATTITUDE)
 
-            rPIDvalue = rollPID.getCorrection(desiredPos['x'],currentPos['x'])
-            pPIDvalue = pitchPID.getCorrection(desiredPos['y'],currentPos['y'])
+            rPIDvalue = rollPID.update(currentPos['x'])
+            pPIDvalue = pitchPID.update(currentPos['y'])
 
             # Check before flying that compass is calibrated
-            sinYaw = 0
-            cosYaw = 1
+            sinYaw = sin(kalman_yaw)
+            cosYaw = cos(kalman_yaw)
 
             # Mellinger paper
             #desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
