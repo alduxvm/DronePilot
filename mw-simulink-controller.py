@@ -23,6 +23,9 @@ rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
 # MRUAV initialization
 #vehicle = MultiWii("/dev/tty.usbserial-A801WZA1")
 vehicle = MultiWii("/dev/ttyUSB0")
+vehicle.getData(MultiWii.ATTITUDE)
+
+
 
 # Function to update commands and attitude to be called by a thread
 def sendCommands():
@@ -34,6 +37,11 @@ def sendCommands():
         logger = csv.writer(f)
         #logger.writerow(('timestamp','ax','ay','az','gx','gy','gz','x','y','z','attx','atty','attz','Sroll','Spitch','Syaw','Sthrottle'))
         logger.writerow(('timestamp','angx','angy','heading','x','y','z','attx','atty','attz','Sroll','Spitch','Syaw','Sthrottle'))
+        # Kalman Initialization 
+        process_variance = 1e-3
+        estimated_measurement_variance = 16
+        kalman_filter = KalmanFilter(process_variance, estimated_measurement_variance)
+        kalman_yaw = []
         while True:
             if udp.active:
                 # Timers
@@ -58,7 +66,13 @@ def sendCommands():
                 
                 # Vehicle communication
                 vehicle.sendCMD(16,MultiWii.SET_RAW_RC,rcCMD)
+
+                # Kalman update
+                kalman_filter.input_latest_noisy_measurement(vehicle.attitude['heading'])
+                kalman_yaw.append(kalman_filter.get_latest_estimated_measurement())
                 #time.sleep(0.005) # Apparently not needed, leaved just in case.
+
+                # Update attitude
                 vehicle.getData(MultiWii.ATTITUDE)
 
                 row =   (current, \
@@ -75,7 +89,7 @@ def sendCommands():
                 time.sleep(0.01)
                 #while elapsed < 0.01:
                 #    elapsed = time.time() - current
-                print udp.message
+                print row
                 # End of the main loop
 
     except Exception,error:

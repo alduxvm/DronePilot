@@ -32,7 +32,7 @@ desiredPos = {'x':0.0, 'y':0.0, 'z':0.0} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
-rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
+#rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
 rcCMD = [1500,1500,1500,1000]
 desiredRoll = 1500
 desiredPitch = 1500
