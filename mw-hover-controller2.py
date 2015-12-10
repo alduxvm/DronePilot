@@ -83,30 +83,32 @@ def control():
             currentPos['y'] = udp.message[4]
             currentPos['z'] = udp.message[6]
 
+            # Update Attitude and heading
+            vehicle.getData(MultiWii.ATTITUDE)
+
             # Kalman update
             kalman_filter.input_latest_noisy_measurement(vehicle.attitude['heading'])
             kalman_yaw = kalman_filter.get_latest_estimated_measurement()
 
-            vehicle.getData(MultiWii.ATTITUDE)
-
             rPIDvalue = rollPID.update(currentPos['x'])
             pPIDvalue = pitchPID.update(currentPos['y'])
 
-            # Check before flying that compass is calibrated
-            sinYaw = sin(kalman_yaw)
-            cosYaw = cos(kalman_yaw)
+            # Heading update
+            heading = udp.message[8]
+            sinYaw = sin(heading)
+            cosYaw = cos(heading)
 
             # Mellinger paper
-            #desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
-            #desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
-
-            desiredRoll  = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredRoll  = toPWM(degrees( (rPIDvalue * sinYaw - pPIDvalue * cosYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
+
+            #desiredRoll  = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
+            #desiredPitch = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
 
             # Limit commands for safety
             if udp.message[7] == 1:
-                rcCMD[1] = limit(desiredRoll,1300,1700)
-                rcCMD[0] = limit(desiredPitch,1300,1700)
+                rcCMD[0] = limit(desiredRoll,1200,1800)
+                rcCMD[1] = limit(desiredPitch,1200,1800)
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
             # Send command to vehicle
@@ -118,8 +120,8 @@ def control():
             #vehicle.getData(MultiWii.RC)
             #print "Time to ask two commands -> %0.3f" % (time.time()-elapsed)
             #print "%s %s" % (vehicle.attitude,rcCMD
-            print "%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
-                vehicle.attitude['angx'], vehicle.attitude['angy'], udp.message[10], \
+            print "%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
+                vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], heading, \
                 currentPos['x'], currentPos['y'], currentPos['z'], \
                 rPIDvalue, pPIDvalue, \
                 int(rcCMD[0]), int(rcCMD[1]), \
