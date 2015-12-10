@@ -19,7 +19,7 @@ from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 from modules.pid import PID
-from modules.pid2 import PID_Controller
+from modules.pids import PID_Controller
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -136,11 +136,12 @@ def control():
             #vehicle.getData(MultiWii.RC)
             #print "Time to ask two commands -> %0.3f" % (time.time()-elapsed)
             #print "%s %s" % (vehicle.attitude,rcCMD
-            print "%.2f %.2f %.2f %.2f %.2f %d %d %d %d" % (time.time(), \
+            print "%.2f %.2f %.2f %.2f %.2f %d %d %d %d %d %d" % (time.time(), \
                 vehicle.attitude['heading'], heading, \
                 currentPos['x'], currentPos['y'], \
                 int(rcCMD[0]), int(rcCMD[1]), \
-                int(desiredRoll), int(desiredPitch) ) 
+                int(desiredRoll), int(desiredRoll), \
+                int(desiredRoll2), int(desiredPitch2) ) 
 
             # Save log
             #logger.writerow((time.time(), \
