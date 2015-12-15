@@ -18,16 +18,16 @@ class PID:
 	Discrete PID control
 	"""
 
-	def __init__(self, P=2.0, I=0.0, D=1.0, Derivator=0, Integrator=0, Integrator_max=100, Integrator_min=-100):
+	def __init__(self, P, I, D, Derivator=0, Integrator=0, dt=0.0125, Integrator_max=1.0, Integrator_min=-1.0):
 
 		self.Kp=P
 		self.Ki=I
 		self.Kd=D
 		self.Derivator=Derivator
 		self.Integrator=Integrator
+		self.dt=dt
 		self.Integrator_max=Integrator_max
 		self.Integrator_min=Integrator_min
-
 		self.set_point=0.0
 		self.error=0.0
 
@@ -38,11 +38,15 @@ class PID:
 
 		self.error = self.set_point - current_value
 
+		# Proportional term
 		self.P_value = self.Kp * self.error
-		self.D_value = self.Kd * ( self.error - self.Derivator)
+
+		# Derivative term
+		self.D_value = self.Kd * (( self.error - self.Derivator ) / self.dt )
 		self.Derivator = self.error
 
-		self.Integrator = self.Integrator + self.error
+		# Integral term
+		self.Integrator = self.Integrator + self.error * self.dt
 
 		if self.Integrator > self.Integrator_max:
 			self.Integrator = self.Integrator_max
