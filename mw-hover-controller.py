@@ -36,6 +36,7 @@ currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 rcCMD = [1500,1500,1500,1000]
 desiredRoll = 1500
 desiredPitch = 1500
+desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 position_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1}
@@ -55,9 +56,9 @@ heightPID.setPoint(desiredPos['y'])
 # Function to update commands and attitude to be called by a thread
 def control():
     global vehicle, rcCMD
-    global rollPID, pitchPID
+    global rollPID, pitchPID, heightPID
     global desiredPos, currentPos
-    global desiredRoll, desiredPitch
+    global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue
 
     while True:
@@ -125,7 +126,7 @@ def control():
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
                 pitchPID.resetIntegrator()
-                throttlePID.resetIntegrator()
+                heightPID.resetIntegrator()
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
             # Send commands to vehicle
