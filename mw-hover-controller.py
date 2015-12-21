@@ -51,7 +51,7 @@ pPIDvalue = 0.0
 pitchPID.setPoint(desiredPos['y'])
 heightPID = PID(height_gains['kp'], height_gains['ki'], height_gains['kd'], 0, 0, update_rate, height_gains['iMax'], -height_gains['iMax'])
 hPIDvalue = 0.0
-heightPID.setPoint(desiredPos['y'])
+heightPID.setPoint(desiredPos['z'])
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -116,7 +116,8 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw + rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = hPIDvalue * vehicle_weight
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(udp.message[8])*cos(udp.message[10]))
+            desiredThrottle = (desiredThrottle / 0.0206) + 1000
 
             # Limit commands for safety
             if udp.message[7] == 1:
