@@ -19,16 +19,17 @@ from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 
-# Main Configuration
+# Main configuration
 logging = True
 update_rate = 0.0125 # 80 hz loop cycle
+vehicle_weight = 0.84 # Kg
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
 vehicle.getData(MultiWii.ATTITUDE)
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':0.0} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':-0.5} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
@@ -36,16 +37,20 @@ rcCMD = [1500,1500,1500,1000]
 desiredRoll = 1500
 desiredPitch = 1500
 
-# PID's initialization (Gains are considered the same for pitch and roll)
-gains = {'kp':1.67, 'ki':0.29, 'kd':2.73, 'iMax':1}
-rPIDvalue = 0.0
-pPIDvalue = 0.0
+# Controller PID's gains (Gains are considered the same for pitch and roll)
+position_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1}
+height_gains =   {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1}
 
 # PID modules initialization
-rollPID =  PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, update_rate, gains['iMax'], -gains['iMax'])
+rollPID =  PID(position_gains['kp'], position_gains['ki'], position_gains['kd'], 0, 0, update_rate, position_gains['iMax'], -position_gains['iMax'])
+rPIDvalue = 0.0
 rollPID.setPoint(desiredPos['x'])
-pitchPID = PID(gains['kp'], gains['ki'], gains['kd'], 0, 0, update_rate, gains['iMax'], -gains['iMax'])
+pitchPID = PID(position_gains['kp'], position_gains['ki'], position_gains['kd'], 0, 0, update_rate, position_gains['iMax'], -position_gains['iMax'])
+pPIDvalue = 0.0
 pitchPID.setPoint(desiredPos['y'])
+heightPID = PID(height_gains['kp'], height_gains['ki'], height_gains['kd'], 0, 0, update_rate, height_gains['iMax'], -height_gains['iMax'])
+hPIDvalue = 0.0
+heightPID.setPoint(desiredPos['y'])
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -98,9 +103,10 @@ def control():
             # Heading update and/or selection
             heading = udp.message[9]
 
-            # PID updating, Roll is for Y and Pitch for X
+            # PID updating, Roll is for Y and Pitch for X, Z is negative
             rPIDvalue = rollPID.update(currentPos['y'])
             pPIDvalue = pitchPID.update(currentPos['x'])
+            hPIDvalue = heightPID.update(currentPos['z'])
             
             # Heading must be in radians, MultiWii heading comes in degrees, optitrack in radians
             sinYaw = sin(heading)
@@ -109,6 +115,7 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw + rPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredThrottle = hPIDvalue * vehicle_weight
 
             # Limit commands for safety
             if udp.message[7] == 1:
@@ -118,22 +125,23 @@ def control():
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
                 pitchPID.resetIntegrator()
+                throttlePID.resetIntegrator()
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
             # Send commands to vehicle
             vehicle.sendCMD(8,MultiWii.SET_RAW_RC,rcCMD)
 
-            row =   (current, \
-                        vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
-                        #vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
-                        #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
-                        udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
-                        udp.message[4], udp.message[5], udp.message[6], \
-                        udp.message[8], udp.message[9], udp.message[10])
+            row =   (time.time(), \
+                    vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                    #vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
+                    #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
+                    udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
+                    udp.message[4], udp.message[5], udp.message[6], \
+                    udp.message[8], udp.message[9], udp.message[10])
             if logging:
                 logger.writerow(row)
 
-            print row
+            print "Height: %0.3f | desiredThrottle: %f " % (currentPos['z'], desiredThrottle)
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
