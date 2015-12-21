@@ -123,6 +123,7 @@ def control():
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1200,1800)
                 rcCMD[1] = limit(desiredPitch,1200,1800)
+                rcCMD[3] = limit(desiredThrottle,1000,1600)
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
@@ -143,7 +144,7 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            print "Height: %0.3f | desiredThrottle: %f " % (currentPos['z'], desiredThrottle)
+            print "Height: %0.3f | currentThrottle: %d | desiredThrottle: %f " % (currentPos['z'], rcCMD[3], desiredThrottle)
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
