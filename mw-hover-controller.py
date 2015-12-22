@@ -91,15 +91,15 @@ def control():
             rcCMD[3] = udp.message[3]
 
             # Coordinate map from Optitrack in the MAST Lab: X, Y, Z. NED: If going up, Z is negative. 
-            ########## WALL ########
-            #Door       | x+       |
-            #           |          |
-            #           |       y+ |
-            #----------------------|
-            # y-        |          |
-            #           |          |
-            #         x-|          |
-            ########################
+            ######### WALL ########
+            #Door      | x+       |
+            #          |          |
+            #          |       y+ |
+            #---------------------|
+            # y-       |          |
+            #          |          |
+            #        x-|          |
+            #######################
             # Update current position of the vehicle
             currentPos['x'] = udp.message[4]
             currentPos['y'] = udp.message[5]
@@ -108,7 +108,7 @@ def control():
             # Update Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
 
-            # Heading update and/or selection
+            # Filter new values before using them
             heading = f_yaw.update(udp.message[9])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
@@ -121,8 +121,8 @@ def control():
             cosYaw = cos(heading)
 
             # Conversion from desired accelerations to desired angle commands
-            desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw + rPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(udp.message[8])*cos(udp.message[10]))
             desiredThrottle = (desiredThrottle / kt) + u0
 
@@ -151,8 +151,8 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            #print "Height: %0.3f | currentThrottle: %d | desiredThrottle: %f " % (currentPos['z'], rcCMD[3], desiredThrottle)
-            print "OptitrackYaw: %0.3f | FilteredYaw: %0.3F " % (degrees(udp.message[9]), degrees(heading))
+            print "Height: %0.3f | hPIDvalue: %d | desiredThrottle: %f " % (-currentPos['z'], hPIDvalue, desiredThrottle)
+            #print "OptitrackYaw: %0.3f | FilteredYaw: %0.3F " % (degrees(udp.message[9]), degrees(heading))
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
