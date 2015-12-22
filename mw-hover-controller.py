@@ -42,7 +42,7 @@ desiredPitch = 1500
 desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
-p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Position Controller gains
+p_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
 h_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
@@ -126,14 +126,14 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) #/ (cos(f_pitch.update(udp.message[8]))*cos(f_roll.update(udp.message[10])))
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(vehicle.attitude['angx']))*cos(f_roll.update(vehicle.attitude['angy'])))
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
-                rcCMD[3] = limit(desiredThrottle,1000,2000)
+                #rcCMD[3] = limit(desiredThrottle,1000,2000)
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
