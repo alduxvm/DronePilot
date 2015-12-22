@@ -42,7 +42,7 @@ desiredPitch = 1500
 desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
-p_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
+p_gains = {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
 h_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
@@ -133,7 +133,7 @@ def control():
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
-                #rcCMD[3] = limit(desiredThrottle,1000,2000)
+                rcCMD[3] = limit(desiredThrottle,1000,2000)
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
