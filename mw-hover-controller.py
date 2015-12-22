@@ -46,13 +46,13 @@ p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # 
 h_gains =   {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
-rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], 0, 0, update_rate, p_gains['filter_bandwidth'], p_gains['iMax'], -p_gains['iMax'])
+rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 rPIDvalue = 0.0
 rollPID.setPoint(desiredPos['x'])
-pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], 0, 0, update_rate, p_gains['filter_bandwidth'], p_gains['iMax'], -p_gains['iMax'])
+pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 pPIDvalue = 0.0
 pitchPID.setPoint(desiredPos['y'])
-heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], 0, 0, update_rate, h_gains['filter_bandwidth'], h_gains['iMax'], -h_gains['iMax'])
+heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], h_gains['filter_bandwidth'], 0, 0, update_rate, h_gains['iMax'], -h_gains['iMax'])
 hPIDvalue = 0.0
 heightPID.setPoint(desiredPos['z'])
 

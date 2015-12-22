@@ -56,7 +56,7 @@ class KalmanFilter(object):
 
 """ Discrete PID control Class """
 class PID:
-    def __init__(self, P, I, D, Derivator=0, Integrator=0, dt=0.01, filter_bandwidth, Integrator_max=1.0, Integrator_min=-1.0):
+    def __init__(self, P, I, D, filter_bandwidth, Derivator=0, Integrator=0, dt=0.01, Integrator_max=1.0, Integrator_min=-1.0):
 
         self.Kp=P
         self.Ki=I
@@ -68,7 +68,7 @@ class PID:
         self.Integrator_min=Integrator_min
         self.set_point=0.0
         self.error=0.0
-        self.filter_bandwidth=bandwidth
+        self.filter_bandwidth=filter_bandwidth
         self.filter=0.0
         self.filter_past=0.0
 
