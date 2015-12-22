@@ -32,7 +32,7 @@ vehicle = MultiWii("/dev/ttyUSB0")
 vehicle.getData(MultiWii.ATTITUDE)
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':0.5} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
@@ -43,7 +43,7 @@ desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Position Controller gains
-h_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
+h_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -133,7 +133,7 @@ def control():
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
-                #rcCMD[3] = limit(desiredThrottle,1000,1600)
+                rcCMD[3] = limit(desiredThrottle,1000,2000)
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
