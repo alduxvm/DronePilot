@@ -57,7 +57,10 @@ hPIDvalue = 0.0
 heightPID.setPoint(desiredPos['z'])
 
 # Filters initialization
-f_yaw = low_pass(20,update_rate)
+f_yaw   = low_pass(20,update_rate)
+f_pitch = low_pass(20,update_rate)
+f_roll  = low_pass(20,update_rate)
+
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -66,7 +69,7 @@ def control():
     global desiredPos, currentPos
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue
-    global f_yaw
+    global f_yaw, f_pitch, f_roll
 
     while True:
         if udp.active:
@@ -123,7 +126,7 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(udp.message[8])*cos(udp.message[10]))
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(udp.message[8]))*cos(f_roll.update(udp.message[10])))
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
@@ -151,7 +154,7 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            print "Height: %0.3f | hPIDvalue: %d | desiredThrottle: %f " % (-currentPos['z'], hPIDvalue, desiredThrottle)
+            print "Height: %0.3f | hPIDvalue: %0.3f | desiredThrottle: %f " % (currentPos['z'], hPIDvalue, desiredThrottle)
             #print "OptitrackYaw: %0.3f | FilteredYaw: %0.3F " % (degrees(udp.message[9]), degrees(heading))
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
