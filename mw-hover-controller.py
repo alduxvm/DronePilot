@@ -126,7 +126,7 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(vehicle.attitude['angx']))*cos(f_roll.update(vehicle.attitude['angy'])))
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) #/ (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radianas(vehicle.attitude['angy']))))
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
