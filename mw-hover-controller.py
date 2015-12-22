@@ -151,7 +151,8 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            print "Height: %0.3f | currentThrottle: %d | desiredThrottle: %f " % (currentPos['z'], rcCMD[3], desiredThrottle)
+            #print "Height: %0.3f | currentThrottle: %d | desiredThrottle: %f " % (currentPos['z'], rcCMD[3], desiredThrottle)
+            print "OptitrackYaw: %0.3f | FilteredYaw: %0.3F " % (degrees(udp.message[9]), degrees(heading))
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
