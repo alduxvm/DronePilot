@@ -43,7 +43,7 @@ desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Position Controller gains
-h_gains = {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
+h_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -126,7 +126,7 @@ def control():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(udp.message[8]))*cos(f_roll.update(udp.message[10])))
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) #/ (cos(f_pitch.update(udp.message[8]))*cos(f_roll.update(udp.message[10])))
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
