@@ -88,7 +88,7 @@ class PID:
 
         # Derivative term
         self.D_value = self.Kd * (( self.filter - self.Derivator ) / self.dt )
-        self.Derivator = self.error
+        self.Derivator = self.filter
 
         # Integral term
         self.Integrator = self.Integrator + self.error * self.dt
@@ -141,3 +141,16 @@ class PID:
 
     def resetIntegrator(self):
         self.Integrator=0
+
+
+""" Low Pass Filter """
+class low_pass:
+    def __init__(self,bandwidth,dt):
+        self.filter_bandwidth=bandwidth
+        self.dt=dt
+        self.filter=0.0
+        self.filter_past=0.0
+    def update(self,current_value):
+        self.filter = self.filter_past + self.dt * ( self.filter_bandwidth * ( current_value - self.filter_past ) )
+        self.filter_past = self.filter
+        return self.filter

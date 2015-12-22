@@ -43,7 +43,7 @@ desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Position Controller gains
-h_gains =   {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
+h_gains = {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -56,6 +56,9 @@ heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], h_gains['filter_ban
 hPIDvalue = 0.0
 heightPID.setPoint(desiredPos['z'])
 
+# Filters initialization
+f_yaw = low_pass(20,update_rate)
+
 # Function to update commands and attitude to be called by a thread
 def control():
     global vehicle, rcCMD
@@ -63,6 +66,7 @@ def control():
     global desiredPos, currentPos
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue
+    global f_yaw
 
     while True:
         if udp.active:
@@ -105,7 +109,7 @@ def control():
             vehicle.getData(MultiWii.ATTITUDE)
 
             # Heading update and/or selection
-            heading = udp.message[9]
+            heading = f_yaw.update(udp.message[9])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
             rPIDvalue = rollPID.update(currentPos['y'])
@@ -120,7 +124,7 @@ def control():
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw - pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw + rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(udp.message[8])*cos(udp.message[10]))
-            desiredThrottle = (desiredThrottle / 0.0206) + 1000
+            desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
             if udp.message[7] == 1:
