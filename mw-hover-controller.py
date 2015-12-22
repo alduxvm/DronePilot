@@ -21,15 +21,18 @@ import modules.UDPserver as udp
 
 # Main configuration
 logging = True
-update_rate = 0.0125 # 80 hz loop cycle
+update_rate = 0.01 # 100 hz loop cycle
 vehicle_weight = 0.84 # Kg
+u0 = 1000 # Zero throttle command
+uh = 1360 # Hover throttle command
+kt = vehicle_weight * g / (uh-u0)
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
 vehicle.getData(MultiWii.ATTITUDE)
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':-0.5} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':0.5} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
@@ -39,17 +42,17 @@ desiredPitch = 1500
 desiredThrottle = 1000
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
-position_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1}
-height_gains =   {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1}
+p_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':1, 'filter_bandwidth':50} # Position Controller gains
+h_gains =   {'kp':10.45, 'ki':4.63, 'kd':6.82, 'iMax':1, 'filter_bandwidth':50} # Height Controller gains
 
 # PID modules initialization
-rollPID =  PID(position_gains['kp'], position_gains['ki'], position_gains['kd'], 0, 0, update_rate, position_gains['iMax'], -position_gains['iMax'])
+rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], 0, 0, update_rate, p_gains['filter_bandwidth'], p_gains['iMax'], -p_gains['iMax'])
 rPIDvalue = 0.0
 rollPID.setPoint(desiredPos['x'])
-pitchPID = PID(position_gains['kp'], position_gains['ki'], position_gains['kd'], 0, 0, update_rate, position_gains['iMax'], -position_gains['iMax'])
+pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], 0, 0, update_rate, p_gains['filter_bandwidth'], p_gains['iMax'], -p_gains['iMax'])
 pPIDvalue = 0.0
 pitchPID.setPoint(desiredPos['y'])
-heightPID = PID(height_gains['kp'], height_gains['ki'], height_gains['kd'], 0, 0, update_rate, height_gains['iMax'], -height_gains['iMax'])
+heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], 0, 0, update_rate, h_gains['filter_bandwidth'], h_gains['iMax'], -h_gains['iMax'])
 hPIDvalue = 0.0
 heightPID.setPoint(desiredPos['z'])
 
@@ -96,7 +99,7 @@ def control():
             # Update current position of the vehicle
             currentPos['x'] = udp.message[4]
             currentPos['y'] = udp.message[5]
-            currentPos['z'] = udp.message[6]
+            currentPos['z'] = -udp.message[6]
 
             # Update Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
@@ -121,9 +124,9 @@ def control():
 
             # Limit commands for safety
             if udp.message[7] == 1:
-                rcCMD[0] = limit(desiredRoll,1200,1800)
-                rcCMD[1] = limit(desiredPitch,1200,1800)
-                rcCMD[3] = limit(desiredThrottle,1000,1600)
+                rcCMD[0] = limit(desiredRoll,1000,2000)
+                rcCMD[1] = limit(desiredPitch,1000,2000)
+                #rcCMD[3] = limit(desiredThrottle,1000,1600)
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()

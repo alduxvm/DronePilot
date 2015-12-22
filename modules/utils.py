@@ -54,12 +54,9 @@ class KalmanFilter(object):
     def get_latest_estimated_measurement(self):
         return self.posteri_estimate
 
+""" Discrete PID control Class """
 class PID:
-    """
-    Discrete PID control
-    """
-
-    def __init__(self, P, I, D, Derivator=0, Integrator=0, dt=0.0125, Integrator_max=1.0, Integrator_min=-1.0):
+    def __init__(self, P, I, D, Derivator=0, Integrator=0, dt=0.01, filter_bandwidth, Integrator_max=1.0, Integrator_min=-1.0):
 
         self.Kp=P
         self.Ki=I
@@ -71,6 +68,9 @@ class PID:
         self.Integrator_min=Integrator_min
         self.set_point=0.0
         self.error=0.0
+        self.filter_bandwidth=bandwidth
+        self.filter=0.0
+        self.filter_past=0.0
 
     def update(self,current_value):
         """
@@ -82,8 +82,12 @@ class PID:
         # Proportional term
         self.P_value = self.Kp * self.error
 
+        # Filter
+        self.filter = self.filter_past + self.dt * ( self.filter_bandwidth * ( self.error - self.filter_past ) )
+        self.filter_past = self.filter
+
         # Derivative term
-        self.D_value = self.Kd * (( self.error - self.Derivator ) / self.dt )
+        self.D_value = self.Kd * (( self.filter - self.Derivator ) / self.dt )
         self.Derivator = self.error
 
         # Integral term
