@@ -84,7 +84,8 @@ def control():
             st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
             f = open("logs/mw-"+st, "w")
             logger = csv.writer(f)
-            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle','x','y','z','Mroll','Mpitch','Myaw'))
+            # V -> vehicle | P -> pilot (joystick) | M -> motion capture | C -> commanded controls
+            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle','x','y','z','Mroll','Mpitch','Myaw','Croll','Cpitch','Cyaw','Cthrottle'))
         while True:
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
@@ -150,12 +151,12 @@ def control():
                     #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
                     udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
                     udp.message[4], udp.message[5], udp.message[6], \
-                    udp.message[8], udp.message[9], udp.message[10])
+                    udp.message[8], udp.message[9], udp.message[10], \
+                    rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3]) 
             if logging:
                 logger.writerow(row)
 
-            print "Height: %0.3f | hPIDvalue: %0.3f | desiredThrottle: %f " % (currentPos['z'], hPIDvalue, desiredThrottle)
-            #print "OptitrackYaw: %0.3f | FilteredYaw: %0.3F " % (degrees(udp.message[9]), degrees(heading))
+            print "Height: %0.3f | X: %0.3f | Y: %0.3f " % (currentPos['z'], currentPos['x'], currentPos['y'])
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
