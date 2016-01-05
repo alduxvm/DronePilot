@@ -85,7 +85,7 @@ def control():
             f = open("logs/mw-"+st, "w")
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | M -> motion capture | C -> commanded controls
-            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle','x','y','z','Mroll','Mpitch','Myaw','Croll','Cpitch','Cyaw','Cthrottle'))
+            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle','x','y','z','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
         while True:
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
@@ -135,11 +135,13 @@ def control():
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
+                mode = 'Auto'
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
                 pitchPID.resetIntegrator()
                 heightPID.resetIntegrator()
+                mode = 'Manual'
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
             # Send commands to vehicle
@@ -152,11 +154,12 @@ def control():
                     udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
                     udp.message[4], udp.message[5], udp.message[6], \
                     udp.message[8], udp.message[9], udp.message[10], \
+                    udp.message[7], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3]) 
             if logging:
                 logger.writerow(row)
 
-            print "Height: %0.3f | X: %0.3f | Y: %0.3f " % (currentPos['z'], currentPos['x'], currentPos['y'])
+            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (currentPos['z'], currentPos['x'], currentPos['y'])
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
