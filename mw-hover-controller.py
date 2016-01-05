@@ -159,7 +159,7 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (currentPos['z'], currentPos['x'], currentPos['y'])
+            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
