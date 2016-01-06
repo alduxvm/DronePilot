@@ -32,7 +32,7 @@ vehicle = MultiWii("/dev/ttyUSB0")
 vehicle.getData(MultiWii.ATTITUDE)
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':0.5} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
@@ -75,9 +75,9 @@ def go_to(target):
     desiredPos = target
 
     # Update PID values
-    rollPID.setPoint(desiredPos['x'])
-    pitchPID.setPoint(desiredPos['y'])
-    heightPID.setPoint(desiredPos['z'])
+    #rollPID.setPoint(desiredPos['x'])
+    #pitchPID.setPoint(desiredPos['y'])
+    #heightPID.setPoint(desiredPos['z'])
 
     while True:
         current = time.time() - start
@@ -99,8 +99,8 @@ def mission():
         if 'Auto' in mode:
 
             # Waypoint definition
-            wp1 = {'x':0.0, 'y':0.0, 'z':1.0}
-            wp2 = {'x':0.0, 'y':0.0, 'z':0.5}
+            wp1 = {'x':0.0, 'y':0.0, 'z':1.5}
+            wp2 = {'x':0.0, 'y':0.0, 'z':1.0}
 
             print "¡¡Starting automatic mission!!"
             time.sleep(1)
@@ -142,7 +142,8 @@ def flight_management():
             f = open("logs/mw-"+st, "w")
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | M -> motion capture | C -> commanded controls
-            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle','x','y','z','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
+            logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
+                             'x','y','z','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
         while True:
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
@@ -217,6 +218,7 @@ def flight_management():
                 logger.writerow(row)
 
             #print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
+            print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, desiredPos['z'], desiredPos['x'], desiredPos['y'])
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
