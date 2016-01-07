@@ -69,20 +69,20 @@ def go_to(target):
     global desiredPos, currentPos
     global rollPID, pitchPID, heightPID
 
-    timeout = 15
-    min_distance = 0.05
+    timeout = 20
+    min_distance = 0.07
     start = time.time()
     desiredPos = target
 
     # Update PID values
-    #rollPID.setPoint(desiredPos['x'])
-    #pitchPID.setPoint(desiredPos['y'])
-    #heightPID.setPoint(desiredPos['z'])
+    rollPID.setPoint(desiredPos['x'])
+    pitchPID.setPoint(desiredPos['y'])
+    heightPID.setPoint(desiredPos['z'])
 
-    while True:
+    while 'Auto' in mode:
         current = time.time() - start
         distance = sqrt(pow(desiredPos['x'] - currentPos['x'],2) + pow(target['y'] - currentPos['y'],2) + pow(target['z'] - currentPos['z'],2) )
-        print " > %0.2f Travelling to WP, distance to target = %0.4f" % (current, distance)
+        print " > %0.2f Going->[%0.1f, %0.1f, %0.1f], actual->[%0.1f, %0.1f, %0.1f], distance to target = %0.4f" % (current,desiredPos['x'],desiredPos['y'],desiredPos['z'],currentPos['x'],currentPos['y'],currentPos['z'],distance)
         if distance <= min_distance:
             print " - Reached target location"
             break;
@@ -102,7 +102,7 @@ def mission():
             wp1 = {'x':0.0, 'y':0.0, 'z':1.5}
             wp2 = {'x':0.0, 'y':0.0, 'z':1.0}
 
-            print "¡¡Starting automatic mission!!"
+            print "Starting automatic mission!!"
             time.sleep(1)
 
             print "Traveling to waypoint 1: ", wp1
@@ -111,11 +111,11 @@ def mission():
             time.sleep(5)
 
             print "Traveling to waypoint 2: ", wp1
-            go_to(wp1)
+            go_to(wp2)
             # Maintain current position for certain time
             time.sleep(5)
         else:
-            print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
+            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
             time.sleep(0.5)
 
 # Function to handle the flight management to be called by a thread, it communicates with the vehicle,
@@ -218,7 +218,8 @@ def flight_management():
                 logger.writerow(row)
 
             #print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
-            print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, desiredPos['z'], desiredPos['x'], desiredPos['y'])
+            if 'Manual' in mode:
+                print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, desiredPos['z'], desiredPos['x'], desiredPos['y'])
             # Wait time (not ideal, but its working) 
             time.sleep(update_rate)  
 
