@@ -75,8 +75,8 @@ def go_to(target):
     desiredPos = target
 
     # Update PID values
-    rollPID.setPoint(desiredPos['x'])
-    pitchPID.setPoint(desiredPos['y'])
+    rollPID.setPoint(desiredPos['y'])
+    pitchPID.setPoint(desiredPos['x'])
     heightPID.setPoint(desiredPos['z'])
 
     while 'Auto' in mode:
@@ -185,7 +185,7 @@ def flight_management():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) #/ (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radianas(vehicle.attitude['angy']))))
+            desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
