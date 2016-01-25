@@ -26,7 +26,7 @@ vehicle_weight = 0.84 # Kg
 u0 = 1000 # Zero throttle command
 uh = 1360 # Hover throttle command
 kt = vehicle_weight * g / (uh-u0)
-ky = pi/500
+ky = 500 / pi # Yaw controller gain
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -46,7 +46,7 @@ desiredYaw = 1500
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
 h_gains = {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
-y_gains = {'kp': 0.5,  'ki':0.5,  'kd':0.5,  'iMax':2, 'filter_bandwidth':50} # Yaw Controller gains
+y_gains = {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # Yaw Controller gains
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -76,6 +76,7 @@ def control():
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue, yPIDvalue
     global f_yaw, f_pitch, f_roll
+    global ky
 
     while True:
         if udp.active:
@@ -137,15 +138,13 @@ def control():
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
             desiredThrottle = (desiredThrottle / kt) + u0
-            if heading < 0:
-                ky = -ky
-            desiredYaw = yPIDvalue * heading * ky
+            desiredYaw = 1500 - (yPIDvalue * ky)
 
             # Limit commands for safety
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
-                #rcCMD[2] = limit(desiredYaw,1000,2000)
+                rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'Auto'
             else:
