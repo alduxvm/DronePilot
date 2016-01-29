@@ -1,37 +1,39 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pix-showdata.py -> Script that shows data from a vehicle and a MoCap system. DroneApi related. """
+""" pix-showdata.py -> Script that shows data from a vehicle. DroneKit 2.0 related. """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "2"
 __maintainer__ = "Aldo Vargas"
-__maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time, threading, csv, datetime
-'''  To import own modules, you need to export the current path before importing the module.    '''
-'''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
-import os, sys
-sys.path.append(os.getcwd())
-import modules.UDPserver as udp
-import modules.utils as utils
-import modules.pixVehicle
+import time
+from dronekit import connect, VehicleMode
+#import modules.UDPserver as udp
+from modules.utils import *
+from modules.pixVehicle import *
 
-# Vehicle initialization
-api = local_connect()
-vehicle = api.get_vehicles()[0]
+# Connection to the vehicle
+# SITL via TCP
+#vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+# SITL via UDP 
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+# Real vehicle via Serial Port 
+#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
-""" Section that starts the script """
- while True:
-    print "%s" % vehicle.attitude #SR2_EXTRA1
-    print "%s" % vehicle.velocity #SR2_POSITION
-    print "%s" % vehicle.channel_readback #SR2_RC_CHAN
-    print "%s" % udp.message
-    time.sleep(0.05)
+while True:
+	print "%s" % vehicle.attitude #SR2_EXTRA1
+	print "%s" % vehicle.velocity #SR2_POSITION
+	print "%s" % vehicle.channels #SR2_RC_CHAN
+	print "Altitude (global frame): %s" % vehicle.location.global_frame.alt
+	print "Altitude (global relative frame): %s" % vehicle.location.global_relative_frame.alt
+	print "%s" % vehicle.mode.name
+	#print "%s" % udp.message
+	time.sleep(0.1)
 
 ''' 
 param set SR2_EXTRA1 10

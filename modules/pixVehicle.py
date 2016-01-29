@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pixVehicle.py -> Module that contains several common functions for pixhawk vehicles. """
+""" pixVehicle.py -> Module that contains several common functions for pixhawk vehicles. Updated to DroneKit 2.0 """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "2"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, math
-from droneapi.lib import VehicleMode, Location
-from pymavlink import mavutil
+from dronekit import connect, VehicleMode
 
-def arm_and_takeoff(aTargetAltitude):
+def arm_and_takeoff(vehicle, aTargetAltitude):
     """
     Arms vehicle and fly to aTargetAltitude.
     """
@@ -29,25 +28,24 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
         
     print "Arming motors"
-    # Copter should arm in GUIDED mode
     vehicle.mode    = VehicleMode("GUIDED")
     vehicle.armed   = True
-    vehicle.flush()
 
-    while not vehicle.armed and not api.exit:
+    while not vehicle.armed:
         print " Waiting for arming..."
         time.sleep(1)
 
     print "Taking off!"
-    vehicle.commands.takeoff(aTargetAltitude) # Take off to target altitude
-    vehicle.flush()
+    vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 
-    while not api.exit:
-        print " Altitude: ", vehicle.location.alt
-        if vehicle.location.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
+    while True:
+        print " Altitude: ", vehicle.location.global_relative_frame.alt
+        if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
             print "Reached target altitude"
             break;
         time.sleep(1)
+
+'''
 
 def go_to(target):
     """
@@ -115,3 +113,5 @@ def move_servo(port,value):
     msg = vehicle.message_factory.command_long_encode(0,0,mavutil.mavlink.MAV_CMD_DO_SET_SERVO, 0, port, value, 0, 0, 0, 0, 0)
     vehicle.send_mavlink(msg)
     vehicle.flush()
+
+'''

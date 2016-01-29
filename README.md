@@ -1,30 +1,47 @@
+![Altax](https://altax.net/images/altax-repo.png "Altax")
+
 # Drone Pilot
 
- Pilot software (running on companion computers) for the flight controller autopilot's. It can control and fly several flight controllers, including Pixhawk's, APM's and MultiWii's.
+Autonomous Pilot software that runs on companion computers. 
+
+Main functionalities:
+
+* Communication with flight controllers, including <Pixhawk, PX4, APM and MultiWii>.
+* Bridge between a ground station computer and flight controller, this allows to control vehicles from a computer.
+* Black box of flight data (save all the data from the flight controller and ground station).
+* Position control algorithms. Uses data from a motion capture system and compute the pilot commands to keep the vehicle in a desired position.
+* Uses DroneKit (when using Pixhawk and PX4) to perform advanced missions.
+
+Vehicle flying using a hover controller (mw-hover-controller.py)
+
+![Flying quadcopter](https://altax.net/images/quad.jpg "Flying quadcopter")
+
+This library uses a companion computer alongside a flight controller, you can check this post <https://altax.net/blog/flight-stack/>.
 
 ## Current scripts:
 
-
 ### MultiWii scripts:
 
-* mw-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a FC running MultiWii software.
+* mw-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a flight controller running MultiWii software.
 
 [![Multiwii joystick (naze32)](http://img.youtube.com/vi/XyyfGp-IomE/0.jpg)](http://www.youtube.com/watch?v=XyyfGp-IomE)
 
-* mw-hover-controller.py -> Calculate commands to make a Multiwii multicopter hover over a specified x,y,z coordinate.
+* mw-hover-controller.py -> Computer pilot commands (using a *PID structure*) to make a Multiwii multicopter hold a specified x,y,z coordinate.
 
 
 ### Pixhawk scripts:
+
+* pix-showdata.py -> Reads data from a flight controller (either SITL or real) and displays it. Dronekit related. Script that will be used first to ensure the communication with the flight controller is working.
+
+* pix-takeoff.py -> Script that makes a pixhawk take off in a secure way. Dronekit related.
+
+[![Example take-off](http://img.youtube.com/vi/KnjYYBKLK0s/0.jpg)](http://www.youtube.com/watch?v=KnjYYBKLK0s)
 
 * pix-joystick.py -> Send joystick commands via UDP from a ground-station running Matlab to a pixhawk. Dronekit related.
 
 [![Pixhawk joystick](http://img.youtube.com/vi/TkYeQ6orN8Y/0.jpg)](http://www.youtube.com/watch?v=TkYeQ6orN8Y)
 
 * pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. Dronekit related.
-
-* pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. Dronekit related.
-
-[![Example take-off](http://img.youtube.com/vi/KnjYYBKLK0s/0.jpg)](http://www.youtube.com/watch?v=KnjYYBKLK0s)
 
 * pix-goto.py -> Script that commands the vehicle to follow waypoints. 
 
@@ -38,19 +55,19 @@
 
 ## Supported flight controllers:
 
-* Multiwii boards (using MSP)
+* Multiwii boards (using MSP). Currently using on this examples a naze32.
 
-* Pixhawk / PX4 / APM (using mavlink & drone kit)
+* Pixhawk / PX4 / APM (using mavlink & DroneKit 2.0)
 
 
 
 ## Supported companion computers: 
 
-* Raspberry Pi
+* Raspberry Pi (B+, 2 or Zero)
 
 * oDroid U3 
 
-Note: Code is in python, so, any linux computer would be able tu run it.
+Note: Code is in python, so, any linux companion computer should be able tu run it.
 
 
 

@@ -1,68 +1,41 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" pix-takeoff.py -> Script that makes a pixhawk take off in the most secure way. DroneApi related. """
+""" pix-takeoff.py -> Script that makes a pixhawk take off in a secure way. DroneKit 2.0 related. """
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "2"
 __maintainer__ = "Aldo Vargas"
-__maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time
-from droneapi.lib import VehicleMode, Location
-from pymavlink import mavutil
+from dronekit import connect, VehicleMode
+#import modules.UDPserver as udp
+from modules.utils import *
+from modules.pixVehicle import *
 
-api = local_connect()
-vehicle = api.get_vehicles()[0]
-
-""" Functions to be implemented inside a module - todo """
-
-def arm_and_takeoff(targetAltitude):
-    """
-    Arms vehicle and fly to a target altitude.
-    """
-
-    print "Basic pre-arm checks"
-    if vehicle.mode.name == "INITIALISING":
-        print "Waiting for vehicle to initialise"
-        time.sleep(1)
-    while vehicle.gps_0.fix_type < 2:
-        print "Waiting for GPS...:", vehicle.gps_0.fix_type
-        time.sleep(1)
-		
-    print "Arming motors"
-    vehicle.mode    = VehicleMode("GUIDED")
-    vehicle.armed   = True
-    vehicle.flush()
-
-    while not vehicle.armed and not api.exit:
-        print " Waiting for arming..."
-        time.sleep(1)
-
-    print "Taking off!"
-    vehicle.commands.takeoff(targetAltitude) # Take off to target altitude
-    vehicle.flush()
-
-    # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command 
-    #  after Vehicle.commands.takeoff will execute immediately).
-    while not api.exit:
-        print " Altitude: ", vehicle.location.alt
-        if vehicle.location.alt>=targetAltitude*0.95: #Just below target, in case of undershoot.
-            print "Reached target altitude"
-            break;
-        time.sleep(1)
-
-
+# Connection to the vehicle
+# SITL via TCP
+#vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+# SITL via UDP 
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
 
 """ Mission starts here """
 
-arm_and_takeoff(3)
+print "\n\nAttempting to start take off!!\n\n"
+arm_and_takeoff(vehicle, 10)
+print "Wait 5 seconds before going landing"
+print "Current altitude: ", vehicle.location.global_relative_frame.alt
+time.sleep(5)
+print "\n\nLanding!\n\n"
+#vehicle.mode = VehicleMode("RTL")
+vehicle.mode = VehicleMode("LAND")
 
-time.sleep(10)
-print "Landing the Aircraft"
-vehicle.mode    = VehicleMode("LAND")
-vehicle.flush()
+while vehicle.armed:
+    print "Current altitude: ", vehicle.location.global_relative_frame.alt
+    time.sleep(0.5)
+
+print "\n\nMission complete\n\n"
