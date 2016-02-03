@@ -72,12 +72,13 @@ class PID:
         self.filter=0.0
         self.filter_past=0.0
 
-    def update(self,current_value):
+    def update(self, error):
         """
         Calculate PID output value for given reference input and feedback
         """
 
-        self.error = self.set_point - current_value
+        #self.error = self.set_point - current_value
+        self.error = error
 
         # Proportional term
         self.P_value = self.Kp * self.error

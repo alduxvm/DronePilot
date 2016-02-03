@@ -51,16 +51,16 @@ y_gains = {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 rPIDvalue = 0.0
-rollPID.setPoint(desiredPos['x'])
+#rollPID.setPoint(desiredPos['y'])
 pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 pPIDvalue = 0.0
-pitchPID.setPoint(desiredPos['y'])
+#pitchPID.setPoint(desiredPos['x'])
 heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], h_gains['filter_bandwidth'], 0, 0, update_rate, h_gains['iMax'], -h_gains['iMax'])
 hPIDvalue = 0.0
 heightPID.setPoint(desiredPos['z'])
 yawPID =    PID(y_gains['kp'], y_gains['ki'], y_gains['kd'], y_gains['filter_bandwidth'], 0, 0, update_rate, y_gains['iMax'], -y_gains['iMax'])
 yPIDvalue = 0.0
-yawPID.setPoint(0.0) # 0.0 radians
+#yawPID.setPoint(0.0) # 0.0 radians
 
 # Filters initialization
 f_yaw   = low_pass(20,update_rate)
@@ -124,9 +124,9 @@ def control():
             heading = f_yaw.update(udp.message[9])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
-            rPIDvalue = rollPID.update(currentPos['y'])
-            pPIDvalue = pitchPID.update(currentPos['x'])
-            hPIDvalue = heightPID.update(currentPos['z'])
+            rPIDvalue = rollPID.update(desiredPos['y'] - currentPos['y'])
+            pPIDvalue = pitchPID.update(desiredPos['x'] - currentPos['x'])
+            hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(heading)
             
             # Heading must be in radians, MultiWii heading comes in degrees, optitrack in radians

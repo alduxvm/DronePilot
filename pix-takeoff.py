@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "2"
+__version__ = "2.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -22,6 +22,8 @@ from modules.pixVehicle import *
 #vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
 # SITL via UDP 
 vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+# Real vehicle via Serial Port 
+#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
 """ Mission starts here """
 
@@ -39,3 +41,4 @@ while vehicle.armed:
     time.sleep(0.5)
 
 print "\n\nMission complete\n\n"
+vehicle.close()

@@ -1,4 +1,4 @@
-![Altax](https://altax.net/images/altax-repo.png "Altax")
+![Altax](https://altax.net/images/altax.png "Altax")
 
 # Drone Pilot
 
@@ -12,7 +12,9 @@ Main functionalities:
 * Position control algorithms. Uses data from a motion capture system and compute the pilot commands to keep the vehicle in a desired position.
 * Uses DroneKit (when using Pixhawk and PX4) to perform advanced missions.
 
-Vehicle flying using a hover controller (mw-hover-controller.py)
+The objective of this repository is to do research using multirotor vehicles and learn how to develop with them.
+
+Vehicle flying using a hover controller (mw-hover-controller.py):
 
 ![Flying quadcopter](https://altax.net/images/quad.jpg "Flying quadcopter")
 
@@ -45,11 +47,11 @@ This library uses a companion computer alongside a flight controller, you can ch
 
 * pix-goto.py -> Script that commands the vehicle to follow waypoints. 
 
-![Example goto](http://www.aldux.net/images/goto.png "SITL of this script working")
+![Example goto](https://altax.net/images/goto.png "SITL of this script working")
 
 * pix-velocity-vector.py -> Script that send the vehicle a velocity vector to form a square and diamond shape.
 
-![Example velocity vector](http://www.aldux.net/images/velocity.png "SITL of this script working")
+![Example velocity vector](https://altax.net/images/velocity.png "SITL of this script working")
 
 
 
@@ -285,3 +287,13 @@ netcat -l -p 5000 | mplayer -fps 60 -cache 1024 -
 cat fifo.500 | nc.traditional 85.85.85.6 5000 &
 /opt/vc/bin/raspivid -o fifo.500 -t 0 -b 50000
 ```
+
+## Raspberry pi + Ubuntu LTS + DroneKit (not complete)
+
+* Download the Ubuntu LTS image for raspberry pi here: <https://wiki.ubuntu.com/ARM/RaspberryPi>
+* Use Apple Pi-baker to create and put the image on the sd card (mac users)
+* Put sd on RPI and turn it on
+* Once booted, follow instructions to <https://wiki.ubuntu.com/ARM/RaspberryPi> expand file system
+* Change password (optional) ```sudo passwd ubuntu```
+
+

@@ -6,7 +6,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "2"
+__version__ = "2.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -34,6 +34,8 @@ while True:
 	print "%s" % vehicle.mode.name
 	#print "%s" % udp.message
 	time.sleep(0.1)
+
+vehicle.close()
 
 ''' 
 param set SR2_EXTRA1 10

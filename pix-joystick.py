@@ -6,27 +6,31 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "2.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 __video__ = "http://www.youtube.com/watch?v=TkYeQ6orN8Y"
 
-import time, threading
-'''  To import own modules, you need to export the current path before importing the module.    '''
-'''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
-import os, sys
-sys.path.append(os.getcwd())
-import modules.UDPserver as udp
-import modules.utils as utils
-import modules.pixVehicle
+import time
+from dronekit import connect, VehicleMode
+#import modules.UDPserver as udp
+from modules.utils import *
+from modules.pixVehicle import *
 
-api = local_connect()
-vehicle = api.get_vehicles()[0]
+# Connection to the vehicle
+# SITL via TCP
+#vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+# SITL via UDP 
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+# Real vehicle via Serial Port 
+#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
-def joystick():
+rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
+
+def sendCommands():
     """
-    Function to update commands and attitude to be called by a thread.
+    Function to read commands, modify them and send them. To be called by a thread.
     """
     try:
         while True:
@@ -37,27 +41,27 @@ def joystick():
                 # Channel order in mavlink:   roll, pitch, throttle, yaw
                 # Channel order in optitrack: roll, pitch, yaw, throttle
                 roll     = udp.message[0]
-                pitch    = utils.mapping(udp.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
-                throttle = utils.mapping(udp.message[3],1000,2000,968,1998) # Map it to match RC configuration
-                yaw      = utils.mapping(udp.message[2],1000,2000,968,2062) # Map it to match RC configuration
-                vehicle.channel_override = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
-                vehicle.flush()
+                pitch    = mapping(udp.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
+                throttle = mapping(udp.message[3],1000,2000,968,1998) # Map it to match RC configuration
+                yaw      = mapping(udp.message[2],1000,2000,968,2062) # Map it to match RC configuration
+                vehicle.channels.overrides = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
                 #print "%s" % vehicle.attitude
-                print "%s" % vehicle.channel_readback
+                print "%s" % vehicle.channels
                 #print modules.UDPserver.message
                 # 100hz loop
                 while elapsed < 0.01:
                     elapsed = time.time() - current
                 # End of the main loop
     except Exception,error:
-        print "Error on joystick thread: "+str(error)
-        joystick()
+        print "Error on sendCommands thread: "+str(error)
+        sendCommands()
 
 """ Section that starts the threads """
 try:
-    vehicleThread = threading.Thread(target=joystick)
+    vehicleThread = threading.Thread(target=sendCommands)
     vehicleThread.daemon=True
     vehicleThread.start()
     udp.startTwisted()
 except Exception,error:
     print "Error on main script thread: "+str(error)
+    vehicle.close()
