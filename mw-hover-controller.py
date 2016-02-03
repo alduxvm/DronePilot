@@ -96,6 +96,8 @@ def control():
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
         while True:
 
+            current = time.time()
+            elapsed = 0
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
             rcCMD[0] = udp.message[0]
             rcCMD[1] = udp.message[1]
@@ -127,7 +129,7 @@ def control():
             rPIDvalue = rollPID.update(desiredPos['y'] - currentPos['y'])
             pPIDvalue = pitchPID.update(desiredPos['x'] - currentPos['x'])
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
-            yPIDvalue = yawPID.update(heading)
+            yPIDvalue = yawPID.update(0.0 - heading)
             
             # Heading must be in radians, MultiWii heading comes in degrees, optitrack in radians
             sinYaw = sin(heading)
@@ -171,10 +173,12 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            #print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
-            print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
+            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
+            #print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
             # Wait time (not ideal, but its working) 
-            time.sleep(update_rate)  
+            while elapsed < 0.01:
+                    elapsed = time.time() - current
+            #time.sleep(update_rate)  
 
     except Exception,error:
         print "Error in control thread: "+str(error)
