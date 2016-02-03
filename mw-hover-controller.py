@@ -51,16 +51,12 @@ y_gains = {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 rPIDvalue = 0.0
-#rollPID.setPoint(desiredPos['y'])
 pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
 pPIDvalue = 0.0
-#pitchPID.setPoint(desiredPos['x'])
 heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], h_gains['filter_bandwidth'], 0, 0, update_rate, h_gains['iMax'], -h_gains['iMax'])
 hPIDvalue = 0.0
-heightPID.setPoint(desiredPos['z'])
 yawPID =    PID(y_gains['kp'], y_gains['ki'], y_gains['kd'], y_gains['filter_bandwidth'], 0, 0, update_rate, y_gains['iMax'], -y_gains['iMax'])
 yPIDvalue = 0.0
-#yawPID.setPoint(0.0) # 0.0 radians
 
 # Filters initialization
 f_yaw   = low_pass(20,update_rate)
@@ -95,9 +91,10 @@ def control():
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
         while True:
-
+            # Variable to time the loop
             current = time.time()
             elapsed = 0
+
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
             rcCMD[0] = udp.message[0]
             rcCMD[1] = udp.message[1]
@@ -175,10 +172,10 @@ def control():
 
             print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
             #print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
-            # Wait time (not ideal, but its working) 
-            while elapsed < 0.01:
-                    elapsed = time.time() - current
-            #time.sleep(update_rate)  
+
+            # Wait until the update_rate is completed 
+            while elapsed < update_rate:
+                elapsed = time.time() - current
 
     except Exception,error:
         print "Error in control thread: "+str(error)
