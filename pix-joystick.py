@@ -12,18 +12,18 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 __video__ = "http://www.youtube.com/watch?v=TkYeQ6orN8Y"
 
-import time
+import time, threading
 from dronekit import connect, VehicleMode
-#import modules.UDPserver as udp
+import modules.UDPserver as udp
 from modules.utils import *
 from modules.pixVehicle import *
 
 # Connection to the vehicle
 # SITL via TCP
 #vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
-# SITL via UDP 
+# SITL/vehicle via UDP (connection coming from mavproxy.py)
 vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
-# Real vehicle via Serial Port 
+# Direct UART communication to Pixhawk
 #vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
@@ -40,14 +40,14 @@ def sendCommands():
                 # Part for applying commands to the vehicle.
                 # Channel order in mavlink:   roll, pitch, throttle, yaw
                 # Channel order in optitrack: roll, pitch, yaw, throttle
+                # Remember to check min/max for rc channels on APM Planner
                 roll     = udp.message[0]
-                pitch    = mapping(udp.message[1],1000,2000,2000,1000) # To invert channel, maybe add function
+                pitch    = mapping(udp.message[1],1000,2000,2000,1000) # To invert channel
                 throttle = mapping(udp.message[3],1000,2000,968,1998) # Map it to match RC configuration
                 yaw      = mapping(udp.message[2],1000,2000,968,2062) # Map it to match RC configuration
                 vehicle.channels.overrides = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
                 #print "%s" % vehicle.attitude
                 print "%s" % vehicle.channels
-                #print modules.UDPserver.message
                 # 100hz loop
                 while elapsed < 0.01:
                     elapsed = time.time() - current

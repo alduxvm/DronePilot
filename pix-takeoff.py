@@ -20,9 +20,9 @@ from modules.pixVehicle import *
 # Connection to the vehicle
 # SITL via TCP
 #vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
-# SITL via UDP 
+# SITL/vehicle via UDP (connection coming from mavproxy.py)
 vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
-# Real vehicle via Serial Port 
+# Direct UART communication to Pixhawk
 #vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
 """ Mission starts here """

@@ -20,6 +20,8 @@ Vehicle flying using a hover controller (mw-hover-controller.py):
 
 This library uses a companion computer alongside a flight controller, you can check this post <https://altax.net/blog/flight-stack/>.
 
+---
+
 ## Current scripts:
 
 ### MultiWii scripts:
@@ -53,14 +55,13 @@ This library uses a companion computer alongside a flight controller, you can ch
 
 ![Example velocity vector](https://altax.net/images/velocity.png "SITL of this script working")
 
-
+---
 
 ## Supported flight controllers:
 
 * Multiwii boards (using MSP). Currently using on this examples a naze32.
 
 * Pixhawk / PX4 / APM (using mavlink & DroneKit 2.0)
-
 
 
 ## Supported companion computers: 
@@ -71,11 +72,11 @@ This library uses a companion computer alongside a flight controller, you can ch
 
 Note: Code is in python, so, any linux companion computer should be able tu run it.
 
-
+---
 
 ## How to:
 
-* Raspberry Pi (Rasbian)
+### Raspbian
 
 <ol start="1"><li> Update your Pi... </li></ol>
 ```
@@ -97,7 +98,7 @@ sudo apt-get install screen python-wxgtk2.8 python-matplotlib python-opencv pyth
 ```
 sudo pip install pymavlink
 sudo pip install mavproxy
-sudo pip install droneapi
+sudo pip install dronekit
 ```
 
 <ol start="5"><li> Clone this repository:</li></ol>
@@ -105,48 +106,97 @@ sudo pip install droneapi
 git clone https://github.com/alduxvm/DronePilot.git
 ```
 
-#### DroneAPI
+Have a read here <https://altax.net/blog/how-to-dronekit-sitl/> for a tutorial on DroneKit and SITL.
 
-You have to load the module inside mavproxy.py, to do that just type:
+--
 
+### Ubuntu LTS
+
+#### Install Ubuntu
+
+* Download the Ubuntu LTS image for raspberry pi here: <https://wiki.ubuntu.com/ARM/RaspberryPi>
+* Use Apple Pi-baker to create and put the image on the sd card (mac users)
+* Put sd on RPI and turn it on
+* Once booted, follow instructions to <https://wiki.ubuntu.com/ARM/RaspberryPi> expand file system
+* Change password (optional) ```sudo passwd ubuntu```
+
+#### Connect to internet or a network
+
+Have in mind that this particular configuration is for the wireless setup in my laboratory, you will have to change this part so that it suits your own configuration.
+
+* Mount a USB to install two packages: libw30, wireless-tools (packages must be for armhf)
+* List devices: ```sudo fdisk -l```
+* Create USB folder ```sudo mkdir /media/usb```
+* Mount device ```sudo mount /dev/sda2 /media/usb```
+* Navigate to the folder and install:
 ```
-module load droneapi.module.api
+sudo dpkg -i libiw30_30-pre9-8ubuntu1_armhf.deb
+sudo dpkg -1 wireless-tools_30-pre9-5ubuntu2_armhf.deb
+```
+* Add this information to interfaces:
+```
+auto wlan0
+iface wlan0 inet dhcp
+	wireless-essid	jws-uav-lab
+	wireless-mode	Managed
+	wireless-key	s:#########
+```
+* Reboot and you will be connected!
 
+#### Utilities and extra software
+
+* ```sudo apt-get install openssh-server```
+* ```sudo apt-get install python-dev```
+* ```sudo apt-get install screen python-wxgtk2.8 python-matplotlib python-opencv python-pip python-numpy python-serial python-twisted htop git```
+* ```sudo pip install pymavlink```
+* ```sudo pip install mavproxy```
+* ```sudo pip install dronekit```
+
+#### For higher UART speed
+
+Edit /boot/config.txt file, and add to the end:
+```
+# Higher UART Speed
+init_uart_baud=921600
+init_uart_clock=14745600
 ```
 
-Now you're ready to run .py files with droneapi/dronekit! 
-
-#### Simulation
-
-If you're doing tests with simulation, don't forget to turn off the parameter checking inside the mavproxy console, so that you can arm the vehicle:
-
-```
-param set ARMING_CHECK 0
-
-```
-
-All set!! go do tests!!
+---
 
 ## Caution
 
 This code is still under heavy development, everyday I add and remove stuff. Proceed with caution.
 
+---
+
 ## Social networks:
 
 You can follow us in this URL's:
 
-* [Aldux.net](http://aldux.net/)
-* [Aldux.net Facebook](https://www.facebook.com/AlduxNet)
+* [Altax.net](http://altax.net/)
+* [Altax.net Facebook](https://www.facebook.com/AltaxConsulting/)
 
-## Assumptions:
-
-For the 'pix-' scripts the following assumptions must be noted:
-
-* This script assumes that the pixhawk is connected to the raspberry pi via the serial port (/dev/ttyAMA0)
-* In our setup, telemetry port 2 is configured at 115200 on the pixhawk
-* rpi camera connected (for computer vision) 
+---
 
 ## Utilities:
+
+#### updateDronePilot shell script 
+
+```
+#!/bin/bash
+
+echo "Deleting previous directory..."
+rm -rf DronePilot/
+echo "Done."
+echo "Cloning DronePilot repository: "
+git clone https://github.com/alduxvm/DronePilot.git
+#echo "Copying mavinit.scr to proper directory..."
+#mkdir DronePilot/TestQuad
+#mv DronePilot/mavinit.scr DronePilot/TestQuad/
+#echo "Done."
+echo "Ready to do: mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200 --aircraft TestQuad"
+echo "Dont forget to go inside the DronePilot directory."
+```
 
 #### ssh:
 
@@ -215,25 +265,7 @@ To start:
 rtsp://192.168.1.1:8554/unicast
 ```
 
-#### updateDronePilot.sh 
-
-```
-#!/bin/bash
-
-echo "Deleting previous directory..."
-rm -rf DronePilot/
-echo "Done."
-echo "Cloning DronePilot repository: "
-git clone https://github.com/alduxvm/DronePilot.git
-echo "Copying mavinit.scr to proper directory..."
-mkdir DronePilot/TestQuad
-mv DronePilot/mavinit.scr DronePilot/TestQuad/
-echo "Done."
-echo "Ready to do: mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200 --aircraft TestQuad"
-echo "Dont forget to go inside the DronePilot directory."
-```
-
-### Low latency video
+#### Low latency video
 
 * Same DHCP configuration as before
 
@@ -287,13 +319,5 @@ netcat -l -p 5000 | mplayer -fps 60 -cache 1024 -
 cat fifo.500 | nc.traditional 85.85.85.6 5000 &
 /opt/vc/bin/raspivid -o fifo.500 -t 0 -b 50000
 ```
-
-## Raspberry pi + Ubuntu LTS + DroneKit (not complete)
-
-* Download the Ubuntu LTS image for raspberry pi here: <https://wiki.ubuntu.com/ARM/RaspberryPi>
-* Use Apple Pi-baker to create and put the image on the sd card (mac users)
-* Put sd on RPI and turn it on
-* Once booted, follow instructions to <https://wiki.ubuntu.com/ARM/RaspberryPi> expand file system
-* Change password (optional) ```sudo passwd ubuntu```
 
 
