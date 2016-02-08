@@ -42,65 +42,50 @@ DURATION=20
 # Shape shape
 print "Making a square!"
 
-condition_yaw(0)
-send_velocity_vector(NORTH,0,0)
+condition_yaw(vehicle,0)
+send_ned_velocity(vehicle,NORTH,0,0,DURATION)
 print "Flying for 20 seconds direction NORTH!"
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+#send_ned_velocity(vehicle,0,0,0,5)
 
-condition_yaw(90)
-send_velocity_vector(0,EAST,0)
+condition_yaw(vehicle,90)
+send_ned_velocity(vehicle,0,EAST,0,DURATION)
 print "Flying for 20 seconds direction EAST!"
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+#send_ned_velocity(vehicle,0,0,0,5)
 
-condition_yaw(180)
-send_velocity_vector(SOUTH,0,0)
+condition_yaw(vehicle,180)
+send_ned_velocity(vehicle,SOUTH,0,0,DURATION)
 print "Flying for 20 seconds direction SOUTH!"
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+#send_ned_velocity(vehicle,0,0,0,5)
 
-condition_yaw(270)
-send_velocity_vector(0,WEST,0)
+condition_yaw(vehicle,270)
+send_ned_velocity(vehicle,0,WEST,0,DURATION)
 print "Flying for 20 seconds direction WEST!"
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
-
+#send_ned_velocity(vehicle,0,0,0,5)
 
 # Diamond shape
 print "Making a diamond!"
 
 print("Going North, East and up")
-condition_yaw(90)
-send_velocity_vector(NORTH,EAST,UP)
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+condition_yaw(vehicle,90)
+send_ned_velocity(vehicle,NORTH,EAST,UP,DURATION)
 
 print("Going South, East and down")
-condition_yaw(90)
-send_velocity_vector(SOUTH,EAST,DOWN)
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+condition_yaw(vehicle,90)
+send_ned_velocity(vehicle,SOUTH,EAST,DOWN,DURATION)
 
 print("Going South and West")
-condition_yaw(90)
-send_velocity_vector(SOUTH,WEST,0)
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+condition_yaw(vehicle,90)
+send_ned_velocity(vehicle,SOUTH,WEST,0,DURATION)
 
 print("Going North and West")
-condition_yaw(90)
-send_velocity_vector(NORTH,WEST,0)
-time.sleep(DURATION)
-send_velocity_vector(0,0,0)
+condition_yaw(vehicle,90)
+send_ned_velocity(vehicle,NORTH,WEST,0,DURATION)
 
 
 print "Returning to Launch"
 vehicle.mode    = VehicleMode("RTL")
-vehicle.flush()
 print "Waiting 10 seconds RTL"
 time.sleep(10)
 
 print "Landing the Aircraft"
 vehicle.mode    = VehicleMode("LAND")
-vehicle.flush()

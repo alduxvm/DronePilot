@@ -47,13 +47,15 @@ This library uses a companion computer alongside a flight controller, you can ch
 
 * pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. Dronekit related.
 
+![Example logdata](https://altax.net/images/log.jpg "Example of a log of this script working")
+
 * pix-goto.py -> Script that commands the vehicle to follow waypoints. 
 
-![Example goto](https://altax.net/images/goto.png "SITL of this script working")
+![Example goto](https://altax.net/images/goto.jpg "SITL of this script working")
 
 * pix-velocity-vector.py -> Script that send the vehicle a velocity vector to form a square and diamond shape.
 
-![Example velocity vector](https://altax.net/images/velocity.png "SITL of this script working")
+![Example velocity vector](https://altax.net/images/velocity.jpg "SITL of this script working")
 
 ---
 
