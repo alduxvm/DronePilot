@@ -13,7 +13,7 @@ __status__ = "Development"
 
 import time
 from dronekit import connect, VehicleMode
-#import modules.UDPserver as udp
+import modules.UDPserver as udp
 from modules.utils import *
 from modules.pixVehicle import *
 
@@ -38,9 +38,9 @@ while True:
 vehicle.close()
 
 ''' 
-param set SR2_EXTRA1 10
-param set SR2_POSITION 10
-param set SR2_RAW_CTRL 10
-param set SR2_RC_CHAN 10
+param set SR2_EXTRA1 50
+param set SR2_POSITION 50
+param set SR2_RAW_CTRL 50
+param set SR2_RC_CHAN 50
 
 ''' 

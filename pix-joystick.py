@@ -26,6 +26,7 @@ vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
 # Direct UART communication to Pixhawk
 #vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
+update_rate = 0.02 # 50 hertz update rate (maximum for DroneKit)
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
 
 def sendCommands():
@@ -41,15 +42,15 @@ def sendCommands():
                 # Channel order in mavlink:   roll, pitch, throttle, yaw
                 # Channel order in optitrack: roll, pitch, yaw, throttle
                 # Remember to check min/max for rc channels on APM Planner
-                roll     = udp.message[0]
+                roll     = mapping(udp.message[0],1000,2000,1000,2000)
                 pitch    = mapping(udp.message[1],1000,2000,2000,1000) # To invert channel
                 throttle = mapping(udp.message[3],1000,2000,968,1998) # Map it to match RC configuration
                 yaw      = mapping(udp.message[2],1000,2000,968,2062) # Map it to match RC configuration
                 vehicle.channels.overrides = { "1" : roll, "2" : pitch, "3" : throttle, "4" : yaw }
                 #print "%s" % vehicle.attitude
                 print "%s" % vehicle.channels
-                # 100hz loop
-                while elapsed < 0.01:
+                # hz loop
+                while elapsed < update_rate:
                     elapsed = time.time() - current
                 # End of the main loop
     except Exception,error:

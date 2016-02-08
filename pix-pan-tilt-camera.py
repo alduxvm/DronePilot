@@ -6,25 +6,27 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.5"
+__version__ = "2.0"
 __maintainer__ = "Aldo Vargas"
-__maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, csv, threading
-'''  To import own modules, you need to export the current path before importing the module.    '''
-'''  This also means that mavproxy must be called inside the folder of the script to be called. ''' 
-import os, sys
-sys.path.append(os.getcwd())
+from dronekit import connect, VehicleMode
 import modules.UDPserver as udp
-from modules.utils import toPWM
-from modules.vision import ColorTracker
-from modules.pixVehicle import move_servo
+from modules.utils import *
+from modules.pixVehicle import *
+from modules.vision import *
 
-# Vehicle initialization
-api = local_connect()
-vehicle = api.get_vehicles()[0]
+# Connection to the vehicle
+# SITL via TCP
+#vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+# SITL/vehicle via UDP (connection coming from mavproxy.py)
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+# Direct UART communication to Pixhawk
+#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
+
+update_rate = 0.02 # 50 hertz update rate (maximum for DroneKit)
 
 # Camera stuff
 resX = 640
@@ -58,7 +60,7 @@ def follow_tracker():
                     move_servos(1500,1500)
 
                 # 100hz loop
-                while elapsed < 0.02:
+                while elapsed < update_rate:
                     elapsed = time.time() - current
                 # End of the main loop
             else:

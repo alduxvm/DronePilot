@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-waypoint.py: Script that sends commands to a MultiWii vehicle to follow 
-    several waypoints inside the laboratory.
-"""
+""" pix-hover-controller.py: Script that calculates pitch and roll movements for a vehicle 
+    with a pixhawk flight controller and a MoCap system in order to keep a specified position. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Altax.net"
+__copyright__ = "Copyright 2015 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.2"
+__version__ = "1.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, csv, threading
 from math import *
+from dronekit import connect, VehicleMode
 from modules.utils import *
-from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
+from modules.pixVehicle import *
 
 # Main configuration
 logging = True
-update_rate = 0.01 # 100 hz loop cycle
+update_rate = 0.02 # 50 hz loop cycle
 vehicle_weight = 0.84 # Kg
 u0 = 1000 # Zero throttle command
 uh = 1360 # Hover throttle command
@@ -29,21 +29,23 @@ kt = vehicle_weight * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
 
 # MRUAV initialization
-vehicle = MultiWii("/dev/ttyUSB0")
-vehicle.getData(MultiWii.ATTITUDE)
+# SITL via TCP
+#vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+# SITL via UDP 
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+# Real vehicle via Serial Port 
+#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
 
 # Position coordinates [x, y, x] 
 desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
-rcCMD = [1500,1500,1500,1000]
+rcCMD = [1500,1500,1500,968]
 desiredRoll = 1500
 desiredPitch = 1500
 desiredThrottle = 1000
 desiredYaw = 1500
-mode = 'Manual'
-changeWP = False
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
@@ -66,64 +68,15 @@ f_pitch = low_pass(20,update_rate)
 f_roll  = low_pass(20,update_rate)
 
 
-# Function that calculates distance between current position and desired and informs if the target has been reach.
-# Waypoint variable is of the form: wp = {'x':0.0, 'y':0.0, 'z':1.0}
-def go_to(target):
+# Function to update commands and attitude to be called by a thread
+def control():
+    global rcCMD
+    global rollPID, pitchPID, heightPID, yawPID
     global desiredPos, currentPos
-    global rollPID, pitchPID, heightPID
-    global changeWP
-
-    timeout = 20
-    min_distance = 0.07
-    start = time.time()
-
-    # Update flag to change WP
-    changeWP = True 
-
-    while 'Auto' in mode:
-        current = time.time() - start
-        distance = sqrt(pow(desiredPos['x'] - currentPos['x'],2) + pow(target['y'] - currentPos['y'],2) + pow(target['z'] - currentPos['z'],2) )
-        print " > %0.2f Going->[%0.1f, %0.1f, %0.1f], actual->[%0.1f, %0.1f, %0.1f], distance to target = %0.4f" % (current,desiredPos['x'],desiredPos['y'],desiredPos['z'],currentPos['x'],currentPos['y'],currentPos['z'],distance)
-        if distance <= min_distance:
-            print " - Reached target location"
-            changeWP = False
-            break;
-        if current  >= timeout:
-            print " - Timeout to reach location"
-            changeWP = False
-            break;
-        time.sleep(0.1)
-
-
-# Function that will change the desired position according to coordinates defined inside.
-def mission():
-    while True:
-        # Only start the mission if the vehicle mode is set to Auto, this check 
-        if 'Auto' in mode:
-
-            print "Starting automatic mission!!"
-            time.sleep(1)
-
-            wp1 = {'x':0.0, 'y':0.0, 'z':1.0}
-
-            print "Travelling to way-point 1: ", wp1
-            go_to(wp1)
-            # Maintain current position for certain time
-            time.sleep(5)
-
-        else:
-            #print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
-            time.sleep(0.5)
-
-# Function to handle the flight management to be called by a thread, it communicates with the vehicle,
-# it computes PID corrections and logs data. Is a loop that works at a desired update rate.
-def flight_management():
-    global vehicle, rcCMD
-    global rollPID, pitchPID, heightPID
-    global desiredPos, currentPos
-    global desiredRoll, desiredPitch, desiredThrottle, mode
-    global rPIDvalue, pPIDvalue
+    global desiredRoll, desiredPitch, desiredThrottle
+    global rPIDvalue, pPIDvalue, yPIDvalue
     global f_yaw, f_pitch, f_roll
+    global ky
 
     while True:
         if udp.active:
@@ -167,16 +120,9 @@ def flight_management():
             currentPos['y'] = udp.message[5]
             currentPos['z'] = -udp.message[6]
 
-            # Update Attitude 
-            vehicle.getData(MultiWii.ATTITUDE)
-
             # Filter new values before using them
             heading = f_yaw.update(udp.message[9])
-
-            if changeWP:
-                desiredPos = {'x':0.0, 'y':0.0, 'z':1.5}
-            else:
-                desiredPos = {'x':0.0, 'y':0.0, 'z':1.0}
+            heading = f_yaw.update(udp.message[9]) # Internal magnetometer
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
             rPIDvalue = rollPID.update(desiredPos['y'] - currentPos['y'])
@@ -191,6 +137,7 @@ def flight_management():
             # Conversion from desired accelerations to desired angle commands
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
+            # Change this one to correspondent attitude commands
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
             desiredThrottle = (desiredThrottle / kt) + u0
             desiredYaw = 1500 - (yPIDvalue * ky)
@@ -198,9 +145,9 @@ def flight_management():
             # Limit commands for safety
             if udp.message[7] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
-                rcCMD[1] = limit(desiredPitch,1000,2000)
+                rcCMD[1] = mapping(limit(desiredPitch,1000,2000),1000,2000,2000,1000) # Mapping to invert channel (used on pix joystick)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
-                rcCMD[3] = limit(desiredThrottle,1000,2000)
+                rcCMD[3] = limit(desiredThrottle,968,2000)
                 mode = 'Auto'
             else:
                 # Prevent integrators/derivators to increase if they are not in use
@@ -212,7 +159,7 @@ def flight_management():
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
             # Send commands to vehicle
-            vehicle.sendCMD(8,MultiWii.SET_RAW_RC,rcCMD)
+            vehicle.channels.overrides = { "1" : rcCMD[0], "2" : rcCMD[1], "3" : rcCMD[3], "4" : rcCMD[2] }
 
             row =   (time.time(), \
                     vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
@@ -226,28 +173,26 @@ def flight_management():
             if logging:
                 logger.writerow(row)
 
-            #print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
-            if 'Manual' in mode:
-                print "\tMode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, desiredPos['z'], desiredPos['x'], desiredPos['y'])
+            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
+            #print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
+
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
-                elapsed = time.time() - current 
+                elapsed = time.time() - current
 
     except Exception,error:
         print "Error in control thread: "+str(error)
 
 if __name__ == "__main__":
     try:
-        flight_management_thread = threading.Thread(target=flight_management)
-        flight_management_thread.daemon=True
-        flight_management_thread.start()
-        mission_thread = threading.Thread(target=mission)
-        mission_thread.daemon=True
-        mission_thread.start()
+        logThread = threading.Thread(target=control)
+        logThread.daemon=True
+        logThread.start()
         udp.startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)
-        vehicle.ser.close()
+        vehicle.close()
     except KeyboardInterrupt:
         print "Keyboard Interrupt, exiting."
+        vehicle.close()
         exit()

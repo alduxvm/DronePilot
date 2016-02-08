@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
 """ mw-hover-controller.py: Script that calculates pitch and roll movements for a vehicle 
-    with MultiWii flight controller and a MoCap system in order to keep a specified position.
-"""
+    with MultiWii flight controller and a MoCap system in order to keep a specified position."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2015 Aldux.net"
