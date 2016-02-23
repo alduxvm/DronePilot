@@ -18,7 +18,6 @@ from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 import modules.pyrenn as prn
 
@@ -96,8 +95,8 @@ def control():
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | D -> desired position | M -> motion capture | C -> commanded controls | NN -> Neural Network prediction
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
-                             'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle') \
-                             'NNroll','NNpitch','NNyaw','NNx','NNy','NNz')
+                             'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
+                             'NNroll','NNpitch','NNyaw','NNx','NNy','NNz'))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -165,9 +164,9 @@ def control():
 
             # Neural network update
             # Order of the inputs -> roll, pitch, yaw, throttle, vehicle roll, vehicle pitch, motion capture yaw, x, y, z
-            np.put(inputs, [0,1,2,3,4,5,6,7,8,9] \
-                [rcCMD[0], rcCMD[1], rcCMD[3], rcCMD[4], \
-                 vehicle.attitude['angx'], vehicle.attitude['angy'], udp.message[9] \
+            np.put(inputs, [0,1,2,3,4,5,6,7,8,9], \
+                [rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
+                 vehicle.attitude['angx'], vehicle.attitude['angy'], udp.message[9], \
                  currentPos['x'], currentPos['y'], currentPos['z'] ])
             # Get output of neural network
             outputs = prn.NNOut(inputs,net)
@@ -184,7 +183,7 @@ def control():
                     udp.message[8], udp.message[9], udp.message[10], \
                     udp.message[7], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
-                    outputs[0,0], outputs[1,0], outputs[2,0], outputs[3,0], outputs[4,0], outputs[5,0] ) 
+                    outputs[0,0], outputs[1,0], outputs[2,0], outputs[3,0], outputs[4,0], outputs[5,0] )
             if logging:
                 logger.writerow(row)
 

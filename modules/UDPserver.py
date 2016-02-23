@@ -3,10 +3,10 @@
 """UDPserver.py: Handles UDP twisted communications for reading a Optitrack Motion Capture System."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2014 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
-__version__ = "1"
+__version__ = "1.2"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -33,7 +33,7 @@ class twistedUDP(DatagramProtocol):
     def datagramReceived(self, data, (host, port)):
         global message, active
         active = True
-        #self.timeout.cancel()
+        # In case of failure on receiving, check this:
         numOfValues = len(data) / 8
         mess=struct.unpack('>' + 'd' * numOfValues, data)
         message = [ round(element,6) for element in mess ]
