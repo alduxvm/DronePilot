@@ -11,30 +11,41 @@ GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
 def sendAlt():
+    try:
+        GPIO.output(TRIG, False)
+        time.sleep(0.02)
 
-    GPIO.output(TRIG, False)
-    time.sleep(0.1)
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+        
+        timer = time.time()
+        while GPIO.input(ECHO)==0:
+            elapsed = timer - time.time()
+            pulse_start = time.time()
+            if elapsed > 0.5:
+                break
 
-    GPIO.output(TRIG, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG, False)
+        timer = time.time()
+        while GPIO.input(ECHO)==1:
+            elapsed = timer - time.time()
+            pulse_end = time.time()
+            if elapsed > 0.5:
+                break
 
-    while GPIO.input(ECHO)==0:
-        pulse_start = time.time()
+        pulse_duration = pulse_end - pulse_start
 
-    while GPIO.input(ECHO)==1:
-        pulse_end = time.time()
+        distance = pulse_duration * 17150
 
-    pulse_duration = pulse_end - pulse_start
+        distance = round(distance, 2)
 
-    distance = pulse_duration * 17150
+    #    print "Distance:",distance,"cm"
 
-    distance = round(distance, 2)
+        return distance
 
-#    print "Distance:",distance,"cm"
+        GPIO.cleanup()
 
-    return distance
-
-    GPIO.cleanup()
+    except Exception,error:
+        print "Error in sendAlt thread: "+str(error)
 
 sendAlt()
