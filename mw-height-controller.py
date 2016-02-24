@@ -17,11 +17,12 @@ from math import *
 from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
-import RPi.GPIO as GPIO
+
+from altimeter import *
 
 # Main configuration
-logging = True
-update_rate = 0.01 # 100 hz loop cycle
+logging = False
+update_rate = 0.02 # 100 hz loop cycle
 vehicle_weight = 0.84 # Kg
 u0 = 1000 # Zero throttle command
 uh = 1360 # Hover throttle command
@@ -50,38 +51,16 @@ f_height = low_pass(20,update_rate)
 f_pitch  = low_pass(20,update_rate)
 f_roll   = low_pass(20,update_rate)
 
-
-GPIO.setmode(GPIO.BCM)
-TRIG = 23 
-ECHO = 24
-
-GPIO.setup(TRIG,GPIO.OUT)
-GPIO.setup(ECHO,GPIO.IN)
-
-def calculateDistance():
-    try:
-        GPIO.output(TRIG, False)
-        time.sleep(update_rate)
-        GPIO.output(TRIG, True)
-        time.sleep(0.00001)
-        GPIO.output(TRIG, False)
-        while GPIO.input(ECHO)==0:
-            pulse_start = time.time()
-        while GPIO.input(ECHO)==1:
-            pulse_end = time.time()
-        pulse_duration = pulse_end - pulse_start
-        distance = round(pulse_duration * 17150,2)
-        GPIO.cleanup()
-    except Exception,error:
-        print "Error in calculateDistance thread: "+str(error)
-
 def sonar():
     global currentPos
     while True:
-        currentPos['z']=calculateDistance()/100.0
+        distance = sendAlt()
+        if distance is none:
+            print "damn!!"
+        else:
+            currentPos['z']=distance/100.0
         while elapsed < 0.02:
-                elapsed = time.time() - current
-
+            elapsed = time.time() - current
 
 
 # Function to update commands and attitude to be called by a thread
