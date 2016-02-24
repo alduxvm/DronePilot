@@ -59,25 +59,29 @@ GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
 def calculateDistance():
-    global currentPos
     try:
-        while True:
-            GPIO.output(TRIG, False)
-            time.sleep(update_rate)
-            GPIO.output(TRIG, True)
-            time.sleep(0.00001)
-            GPIO.output(TRIG, False)
-            while GPIO.input(ECHO)==0:
-                pulse_start = time.time()
-            while GPIO.input(ECHO)==1:
-                pulse_end = time.time()
-            pulse_duration = pulse_end - pulse_start
-            distance = round(pulse_duration * 17150,2)
-            currentPos['z']=distance/100.0
-            GPIO.cleanup()
+        GPIO.output(TRIG, False)
+        time.sleep(update_rate)
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+        while GPIO.input(ECHO)==0:
+            pulse_start = time.time()
+        while GPIO.input(ECHO)==1:
+            pulse_end = time.time()
+        pulse_duration = pulse_end - pulse_start
+        distance = round(pulse_duration * 17150,2)
+        GPIO.cleanup()
     except Exception,error:
         print "Error in calculateDistance thread: "+str(error)
-        calculateDistance()
+
+def sonar():
+    global currentPos
+    while True:
+        currentPos['z']=calculateDistance()/100.0
+        while elapsed < 0.02:
+                elapsed = time.time() - current
+
 
 
 # Function to update commands and attitude to be called by a thread
@@ -170,7 +174,7 @@ if __name__ == "__main__":
         logThread = threading.Thread(target=control)
         logThread.daemon=True
         logThread.start()
-        sonarThread = threading.Thread(target=calculateDistance)
+        sonarThread = threading.Thread(target=sonar)
         sonarThread.daemon=True
         sonarThread.start()
         udp.startTwisted()
