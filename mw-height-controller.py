@@ -54,8 +54,10 @@ f_roll   = low_pass(20,update_rate)
 def sonar():
     global currentPos
     while True:
+        current = time.time()
+        elapsed = 0
         distance = sendAlt()
-        if distance is none:
+        if distance is None:
             print "damn!!"
         else:
             currentPos['z']=distance/100.0
