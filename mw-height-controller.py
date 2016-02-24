@@ -61,19 +61,20 @@ GPIO.setup(ECHO,GPIO.IN)
 def calculateDistance():
     global currentPos
     try:
-        GPIO.output(TRIG, False)
-        time.sleep(update_rate)
-        GPIO.output(TRIG, True)
-        time.sleep(0.00001)
-        GPIO.output(TRIG, False)
-        while GPIO.input(ECHO)==0:
-            pulse_start = time.time()
-        while GPIO.input(ECHO)==1:
-            pulse_end = time.time()
-        pulse_duration = pulse_end - pulse_start
-        distance = round(pulse_duration * 17150,2)
-        currentPos['z']=distance/100.0
-        GPIO.cleanup()
+        while True:
+            GPIO.output(TRIG, False)
+            time.sleep(update_rate)
+            GPIO.output(TRIG, True)
+            time.sleep(0.00001)
+            GPIO.output(TRIG, False)
+            while GPIO.input(ECHO)==0:
+                pulse_start = time.time()
+            while GPIO.input(ECHO)==1:
+                pulse_end = time.time()
+            pulse_duration = pulse_end - pulse_start
+            distance = round(pulse_duration * 17150,2)
+            currentPos['z']=distance/100.0
+            GPIO.cleanup()
     except Exception,error:
         print "Error in calculateDistance thread: "+str(error)
         calculateDistance()
