@@ -17,6 +17,7 @@ from math import *
 from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
+import RPi.GPIO as GPIO
 
 # Main configuration
 logging = True
@@ -48,6 +49,35 @@ hPIDvalue = 0.0
 f_height = low_pass(20,update_rate)
 f_pitch  = low_pass(20,update_rate)
 f_roll   = low_pass(20,update_rate)
+
+
+GPIO.setmode(GPIO.BCM)
+TRIG = 23 
+ECHO = 24
+
+GPIO.setup(TRIG,GPIO.OUT)
+GPIO.setup(ECHO,GPIO.IN)
+
+def calculateDistance():
+    global currentPos
+    try:
+        GPIO.output(TRIG, False)
+        time.sleep(update_rate)
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+        while GPIO.input(ECHO)==0:
+            pulse_start = time.time()
+        while GPIO.input(ECHO)==1:
+            pulse_end = time.time()
+        pulse_duration = pulse_end - pulse_start
+        distance = round(pulse_duration * 17150,2)
+        currentPos['z']=distance/100.0
+        GPIO.cleanup()
+    except Exception,error:
+        print "Error in calculateDistance thread: "+str(error)
+        calculateDistance()
+
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -86,7 +116,7 @@ def control():
             rcCMD[3] = udp.message[3]
 
             # Update current position of the vehicle
-            currentPos['z'] = sonarReading
+            #currentPos['z'] = sonarReading
 
             # Update Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
@@ -139,6 +169,9 @@ if __name__ == "__main__":
         logThread = threading.Thread(target=control)
         logThread.daemon=True
         logThread.start()
+        sonarThread = threading.Thread(target=calculateDistance)
+        sonarThread.daemon=True
+        sonarThread.start()
         udp.startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)

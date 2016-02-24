@@ -34,8 +34,8 @@ def calculateDistance():
         pulse_end = time.time()
     pulse_duration = pulse_end - pulse_start
     distance = round(pulse_duration * 17150,2)
-    GPIO.cleanup()
     return distance
+    GPIO.cleanup()
 
 while True:
     print "Distance = %0.2f" % calculateDistance()
