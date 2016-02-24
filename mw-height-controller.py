@@ -18,11 +18,9 @@ from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 
-from altimeter import *
-
 # Main configuration
-logging = False
-update_rate = 0.02 # 100 hz loop cycle
+logging = True
+update_rate = 0.01 # 100 hz loop cycle
 vehicle_weight = 0.84 # Kg
 u0 = 1000 # Zero throttle command
 uh = 1360 # Hover throttle command
@@ -50,20 +48,6 @@ hPIDvalue = 0.0
 f_height = low_pass(20,update_rate)
 f_pitch  = low_pass(20,update_rate)
 f_roll   = low_pass(20,update_rate)
-
-def sonar():
-    global currentPos
-    while True:
-        current = time.time()
-        elapsed = 0
-        distance = sendAlt()
-        if distance is None:
-            print "damn!!"
-        else:
-            currentPos['z']=distance/100.0
-        while elapsed < 0.02:
-            elapsed = time.time() - current
-
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -108,7 +92,8 @@ def control():
             vehicle.getData(MultiWii.ATTITUDE)
 
             # Filter new values before using them
-            height = f_height.update(currentPos['z'])
+            currentPos['z'] = -udp.message[6]
+            #height = f_height.update(currentPos['z'])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
@@ -141,7 +126,7 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            print "Mode: %s | Z: %0.3f | FilterZ: %0.3f | Throttle: %d " % (mode, currentPos['z'], height, rcCMD[3])
+            print "Mode: %s | Z: %0.3f | FilterZ: %0.3f | Throttle: %d " % (mode, currentPos['z'], currentPos['z'], rcCMD[3])
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
@@ -155,9 +140,6 @@ if __name__ == "__main__":
         logThread = threading.Thread(target=control)
         logThread.daemon=True
         logThread.start()
-        sonarThread = threading.Thread(target=sonar)
-        sonarThread.daemon=True
-        sonarThread.start()
         udp.startTwisted()
     except Exception,error:
         print "Error on main: "+str(error)
