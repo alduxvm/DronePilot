@@ -92,7 +92,7 @@ def control():
             vehicle.getData(MultiWii.ATTITUDE)
 
             # Filter new values before using them
-            currentPos['z'] = -udp.message[6]
+            currentPos['z'] = -udp.message[7]
             #height = f_height.update(currentPos['z'])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
@@ -103,7 +103,7 @@ def control():
             desiredThrottle = (desiredThrottle / kt) + u0
 
             # Limit commands for safety
-            if udp.message[7] == 1:
+            if udp.message[4] == 1:
                 #rcCMD[0] = limit(desiredRoll,1000,2000)
                 #rcCMD[1] = limit(desiredPitch,1000,2000)
                 #rcCMD[2] = limit(desiredYaw,1000,2000)

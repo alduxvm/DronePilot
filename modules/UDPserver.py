@@ -21,6 +21,28 @@ UDPport = 51001
 message = [1500,1500,1500,1000,0,0,0,0,0,0,0,0,0,0,0,0]
 active = False
 
+"""
+Current order for Aldux Simulink UDP script:
+- UDP message size: 17
+
+Joystick:
+    Roll     -> 0
+    Pitch    -> 1
+    Yaw      -> 2
+    Throttle -> 3
+    Switch   -> 4
+
+Trackable 1 (main):
+    X -> 5    Att1 -> 11
+    Y -> 6    Att2 -> 12
+    Z -> 7    Att3 -> 13
+
+Trackable 2 (extra):
+    X -> 8    Att1 -> 14
+    Y -> 9    Att2 -> 15
+    Z -> 10   Att3 -> 16
+"""
+
 def timeout():
     global active, message
     if not active:

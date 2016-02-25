@@ -111,15 +111,15 @@ def control():
             #        x-|          |
             #######################
             # Update current position of the vehicle
-            currentPos['x'] = udp.message[4]
-            currentPos['y'] = udp.message[5]
-            currentPos['z'] = -udp.message[6]
+            currentPos['x'] = udp.message[5]
+            currentPos['y'] = udp.message[6]
+            currentPos['z'] = -udp.message[7]
 
             # Update Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
 
             # Filter new values before using them
-            heading = f_yaw.update(udp.message[9])
+            heading = f_yaw.update(udp.message[12])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
             rPIDvalue = rollPID.update(desiredPos['y'] - currentPos['y'])
@@ -139,7 +139,7 @@ def control():
             desiredYaw = 1500 - (yPIDvalue * ky)
 
             # Limit commands for safety
-            if udp.message[7] == 1:
+            if udp.message[4] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
                 rcCMD[1] = limit(desiredPitch,1000,2000)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
@@ -163,8 +163,8 @@ def control():
                     #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
                     udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
                     currentPos['x'], currentPos['y'], currentPos['z'], desiredPos['x'], desiredPos['y'], desiredPos['z'], \
-                    udp.message[8], udp.message[9], udp.message[10], \
-                    udp.message[7], \
+                    udp.message[11], udp.message[12], udp.message[13], \
+                    udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3]) 
             if logging:
                 logger.writerow(row)
