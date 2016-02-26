@@ -88,7 +88,8 @@ def control():
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | D -> desired position | M -> motion capture | C -> commanded controls
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
-                             'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle'))
+                             'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
+                             'slx','sly','slz','slr','slp','sly' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -165,7 +166,8 @@ def control():
                     currentPos['x'], currentPos['y'], currentPos['z'], desiredPos['x'], desiredPos['y'], desiredPos['z'], \
                     udp.message[11], udp.message[12], udp.message[13], \
                     udp.message[4], \
-                    rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3]) 
+                    rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
+                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16] ) 
             if logging:
                 logger.writerow(row)
 
