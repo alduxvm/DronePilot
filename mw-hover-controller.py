@@ -89,7 +89,8 @@ def control():
             # V -> vehicle | P -> pilot (joystick) | D -> desired position | M -> motion capture | C -> commanded controls
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
-                             'slx','sly','slz','slr','slp','sly' ))
+                             'slx','sly','slz','slr','slp','sly', \
+                             'm1','m2','m3','m4' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -118,6 +119,7 @@ def control():
 
             # Update Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
+            vehicle.getData(MultiWii.MOTOR)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -167,11 +169,12 @@ def control():
                     udp.message[11], udp.message[12], udp.message[13], \
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
-                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16] ) 
+                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
+                    vehicle.motor['m1'], vehicle.motor['m2'], vehicle.motor['m3'], vehicle.motor['m4'] ) 
             if logging:
                 logger.writerow(row)
 
-            print "Mode: %s | Z: %0.3f | X: %0.3f | Y: %0.3f " % (mode, currentPos['z'], currentPos['x'], currentPos['y'])
+            print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | Heading: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], heading)
             #print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
 
             # Wait until the update_rate is completed 

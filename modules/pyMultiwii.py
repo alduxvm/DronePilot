@@ -61,6 +61,7 @@ class MultiWii:
         """Global variables of data"""
         self.rcChannels = {'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
         self.rawIMU = {'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'elapsed':0,'timestamp':0}
+        self.motor = {'m1':0,'m2':0,'m3':0,'m4':0,'elapsed':0,'timestamp':0}
         self.attitude = {'angx':0,'angy':0,'heading':0,'elapsed':0,'timestamp':0}
         self.message = {'angx':0,'angy':0,'heading':0,'roll':0,'pitch':0,'yaw':0,'throttle':0,'elapsed':0,'timestamp':0}
         self.temp = ();
@@ -79,12 +80,12 @@ class MultiWii:
         self.ser.rtscts = False
         self.ser.dsrdtr = False
         self.ser.writeTimeout = 2
-        """Time to wait until the board became operational"""
+        """Time to wait until the board becomes operational"""
         wakeup = 2
         try:
             self.ser.open()
             if self.PRINT:
-                print "Waking up multicopter on "+self.ser.port+"..."
+                print "Waking up board on "+self.ser.port+"..."
             for i in range(1,wakeup):
                 if self.PRINT:
                     print wakeup-i
@@ -226,6 +227,14 @@ class MultiWii:
                 self.rawIMU['elapsed']=round(elapsed,3)
                 self.rawIMU['timestamp']="%0.2f" % (time.time(),)
                 return self.rawIMU
+            elif cmd == MultiWii.MOTOR:
+                self.motor['m1']=float(temp[0])
+                self.motor['m2']=float(temp[1])
+                self.motor['m3']=float(temp[2])
+                self.motor['m4']=float(temp[3])
+                self.motor['elapsed']="%0.3f" % (elapsed,)
+                self.motor['timestamp']="%0.2f" % (time.time(),)
+                return self.motor
             else:
                 return "No return error!"
         except Exception, error:
