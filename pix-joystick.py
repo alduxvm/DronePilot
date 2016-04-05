@@ -22,11 +22,11 @@ from modules.pixVehicle import *
 # SITL via TCP
 #vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
 # SITL/vehicle via UDP (connection coming from mavproxy.py)
-vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+#vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
 # Direct UART communication to Pixhawk
-#vehicle = connect('/dev/ttyAMA0', wait_ready=True)
+vehicle = connect('/dev/ttyAMA0', baud=921600, wait_ready=False)
 
-update_rate = 0.02 # 50 hertz update rate (maximum for DroneKit)
+update_rate = 0.01 # 100 hertz update rate
 rcCMD = [1500,1500,1500,1000,1000,1000,1000,1000]
 
 def sendCommands():

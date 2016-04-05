@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-hover-controller.py: Script that calculates pitch and roll movements for a vehicle 
-    with MultiWii flight controller and a MoCap system in order to keep a specified position."""
+""" mw-slung-load.py: Script that calculates pitch and roll movements for a vehicle 
+    with MultiWii flight controller and a MoCap system in order to keep a slung load on a 
+    specified position."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2016 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.2"
+__version__ = "1.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -33,11 +34,13 @@ vehicle = MultiWii("/dev/ttyUSB0")
 # Position coordinates [x, y, x] 
 desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
+sl_currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
 rcCMD = [1500,1500,1500,1000]
 desiredRoll = desiredPitch = desiredYaw = 1500
 desiredThrottle = 1000
+sl_desiredRoll = sl_desiredPitch = 1500
 
 # Controller PID's gains (Gains are considered the same for pitch and roll)
 p_gains = {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
@@ -54,6 +57,12 @@ hPIDvalue = 0.0
 yawPID =    PID(y_gains['kp'], y_gains['ki'], y_gains['kd'], y_gains['filter_bandwidth'], 0, 0, update_rate, y_gains['iMax'], -y_gains['iMax'])
 yPIDvalue = 0.0
 
+# PID for slung load
+sl_rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
+sl_rPIDvalue = 0.0
+sl_pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
+sl_pPIDvalue = 0.0
+
 # Filters initialization
 f_yaw   = low_pass(20,update_rate)
 f_pitch = low_pass(20,update_rate)
@@ -68,6 +77,7 @@ def control():
     global rPIDvalue, pPIDvalue, yPIDvalue
     global f_yaw, f_pitch, f_roll
     global ky
+    global sl_currentPos, sl_rollPID, sl_pitchPID, sl_rPIDvalue, sl_pPIDvalue, sl_desiredRoll, sl_desiredPitch
 
     while True:
         if udp.active:
@@ -113,17 +123,25 @@ def control():
             currentPos['y'] = udp.message[6]
             currentPos['z'] = -udp.message[7]
 
-            # Update Attitude 
+            # Update position of the slung load
+            sl_currentPos['x'] = udp.message[8]
+            sl_currentPos['y'] = udp.message[9]
+
+            # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
-            rPIDvalue = rollPID.update(desiredPos['y'] - currentPos['y'])
-            pPIDvalue = pitchPID.update(desiredPos['x'] - currentPos['x'])
+            rPIDvalue = rollPID.update(desiredPos['y']   - currentPos['y'])
+            pPIDvalue = pitchPID.update(desiredPos['x']  - currentPos['x'])
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
+
+            # Slung load PID updating, Roll is for Y and Pitch for X, Z is negative
+            sl_rPIDvalue = sl_rollPID.update(desiredPos['y']  - sl_currentPos['y'])
+            sl_pPIDvalue = sl_pitchPID.update(desiredPos['x'] - sl_currentPos['x'])
             
             # Heading must be in radians, MultiWii heading comes in degrees, optitrack in radians
             sinYaw = sin(heading)
@@ -136,6 +154,10 @@ def control():
             desiredThrottle = (desiredThrottle / kt) + u0
             desiredYaw = 1500 - (yPIDvalue * ky)
 
+            # Slung load roll and pitch
+            sl_desiredRoll  = toPWM(degrees( (sl_rPIDvalue * cosYaw + sl_pPIDvalue * sinYaw) * (1 / g) ),1)
+            sl_desiredPitch = toPWM(degrees( (sl_pPIDvalue * cosYaw - sl_rPIDvalue * sinYaw) * (1 / g) ),1)
+
             # Limit commands for safety
             if udp.message[4] == 1:
                 rcCMD[0] = limit(desiredRoll,1000,2000)
@@ -143,6 +165,12 @@ def control():
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'Auto'
+            elif udp.message[4] == 2:
+                rcCMD[0] = limit(sl_desiredRoll,1000,2000)
+                rcCMD[1] = limit(sl_desiredPitch,1000,2000)
+                rcCMD[2] = limit(desiredYaw,1000,2000)
+                rcCMD[3] = limit(desiredThrottle,1000,2000)
+                mode = 'SlungLoad'
             else:
                 # Prevent integrators/derivators to increase if they are not in use
                 rollPID.resetIntegrator()
@@ -165,12 +193,15 @@ def control():
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
                     udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
-                    mode ) 
+                    mode )
+
             if logging:
                 logger.writerow(row)
 
-            print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | Heading: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], heading)
-            #print "Mode: %s | heading: %0.3f | desiredYaw: %0.3f" % (mode, heading, desiredYaw)
+            if mode is 'Auto' or 'Manual':
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
+            if mode is 'SlungLoad':
+                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_currentPos['x'], sl_currentPos['y'])                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
