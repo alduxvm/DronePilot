@@ -114,6 +114,9 @@ def control():
             currentPos['z'] = -udp.message[7]
 
             # Desired position changed using joystick movements
+            if udp.message[4] == 1:
+                desiredPos['x'] = 0.0
+                desiredPos['y'] = 0.0
             if udp.message[4] == 2:
                 desiredPos['x'] = mapping(udp.message[1],1000,2000,-2.0,2.0)
                 desiredPos['y'] = mapping(udp.message[0],1000,2000,-2.0,2.0)

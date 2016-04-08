@@ -90,14 +90,16 @@ class PID:
         # Derivative term
         self.D_value = self.Kd * (( self.filter - self.Derivator ) / self.dt )
         self.Derivator = self.filter
+        #self.D_value = self.Kd * (( self.error - self.Derivator ) / self.dt )
+        #self.Derivator = self.error
 
         # Integral term
         self.Integrator = self.Integrator + self.error * self.dt
 
-        if self.Integrator > self.Integrator_max:
-            self.Integrator = self.Integrator_max
-        elif self.Integrator < self.Integrator_min:
-            self.Integrator = self.Integrator_min
+        #if self.Integrator > self.Integrator_max:
+        #    self.Integrator = self.Integrator_max
+        #elif self.Integrator < self.Integrator_min:
+        #    self.Integrator = self.Integrator_min
 
         self.I_value = self.Integrator * self.Ki
 

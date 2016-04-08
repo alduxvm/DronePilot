@@ -130,6 +130,20 @@ def control():
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
 
+            # Slung load PID updating, Roll is for Y and Pitch for X, Z is negative
+            sl_rPIDvalue =  sl_rollPID.update(0.0 - sl_currentPos['y'])
+            sl_pPIDvalue = sl_pitchPID.update(0.0 - sl_currentPos['x'])
+
+            # Desired position changed using slung load movements
+            if udp.message[4] == 1: # 
+                desiredPos['x'] = 0.0
+                desiredPos['y'] = 0.0
+            if udp.message[4] == 2:
+                #desiredPos['x'] = mapping(udp.message[1],1000,2000,-2.0,2.0)
+                #desiredPos['y'] = mapping(udp.message[0],1000,2000,-2.0,2.0)
+                desiredPos['x'] = sl_rPIDvalue
+                desiredPos['y'] = sl_pPIDvalue
+
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
 
@@ -138,10 +152,6 @@ def control():
             pPIDvalue = pitchPID.update(desiredPos['x']  - currentPos['x'])
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
-
-            # Slung load PID updating, Roll is for Y and Pitch for X, Z is negative
-            sl_rPIDvalue = sl_rollPID.update(desiredPos['y']  - sl_currentPos['y'])
-            sl_pPIDvalue = sl_pitchPID.update(desiredPos['x'] - sl_currentPos['x'])
             
             # Heading must be in radians, MultiWii heading comes in degrees, optitrack in radians
             sinYaw = sin(heading)
@@ -153,10 +163,6 @@ def control():
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
             desiredThrottle = (desiredThrottle / kt) + u0
             desiredYaw = 1500 - (yPIDvalue * ky)
-
-            # Slung load roll and pitch
-            sl_desiredRoll  = toPWM(degrees( (sl_rPIDvalue * cosYaw + sl_pPIDvalue * sinYaw) * (1 / g) ),1)
-            sl_desiredPitch = toPWM(degrees( (sl_pPIDvalue * cosYaw - sl_rPIDvalue * sinYaw) * (1 / g) ),1)
 
             # Limit commands for safety
             if udp.message[4] == 1:
@@ -200,7 +206,7 @@ def control():
             if mode is 'Auto' or 'Manual':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
             if mode is 'SlungLoad':
-                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_currentPos['x'], sl_currentPos['y'])                
+                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_rPIDvalue, sl_pPIDvalue)                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
