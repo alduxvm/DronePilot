@@ -116,7 +116,7 @@ def control():
             # Desired position changed using joystick movements
             if udp.message[4] == 2:
                 desiredPos['x'] = mapping(udp.message[1],1000,2000,-2.0,2.0)
-                desiredPos['y'] = mapping(udp.message[1],1000,2000,-2.0,2.0)
+                desiredPos['y'] = mapping(udp.message[0],1000,2000,-2.0,2.0)
 
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
@@ -181,7 +181,7 @@ def control():
                 logger.writerow(row)
 
             if mode is 'Auto' or 'Manual':
-                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             if mode is 'Hybrid':
                 print "Mode: %s | Des_X: %0.3f | Des_Y: %0.3f" % (mode, desiredPos['x'], desiredPos['y'])                
 
