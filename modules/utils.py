@@ -11,14 +11,12 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time
-
 g = 9.81 # m/s2 - gravity
 
 """ Function to map a value to another """
-def toPWM(value, option):
-    iMin = -50
-    iMax = 50
+def toPWM(value, option, angle_limit=50):
+    iMin = -angle_limit
+    iMax = angle_limit
     if option == 1: # Normal
     	oMin = 1000
     	oMax = 2000
@@ -157,3 +155,19 @@ class low_pass:
         self.filter = self.filter_past + self.dt * ( self.filter_bandwidth * ( current_value - self.filter_past ) )
         self.filter_past = self.filter
         return self.filter
+
+""" Differentiate given value of position to calculate velocity, also has an added Low Pass Filter """
+class velocity:
+    def __init__(self,bandwidth,dt):
+        self.filter_bandwidth=bandwidth
+        self.dt=dt
+        self.vel=0.0
+        self.pos_past=0.0
+        self.filter=0.0
+        self.filter_past=0.0
+    def get_velocity(self,current_value):
+        self.vel = ( current_value - self.pos_past ) / self.dt
+        self.pos_past = current_value
+        self.filter = self.filter_past + self.dt * ( self.filter_bandwidth * ( self.vel - self.filter_past ) )
+        self.filter_past = self.filter
+        return self.vel,self.filter

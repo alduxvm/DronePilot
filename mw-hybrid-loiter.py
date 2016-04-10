@@ -3,11 +3,12 @@
 """ mw-hybrid-loiter.py: Script that calculates pitch and roll movements for a vehicle 
     with MultiWii flight controller and a MoCap system in order to keep a specified position."""
 
+
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2016 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.2"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -31,8 +32,11 @@ ky = 500 / pi # Yaw controller gain
 vehicle = MultiWii("/dev/ttyUSB0")
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
-currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning, later is updated on the hybrid mode
+currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP from the motion capture system
+
+# Velocity
+velocities = {'x':0.0, 'y':0.0, 'z':0.0, 'fx':0.0, 'fy':0.0, 'fz':0.0}
 
 # Initialize RC commands and pitch/roll to be sent to the MultiWii 
 rcCMD = [1500,1500,1500,1000]
@@ -46,28 +50,32 @@ y_gains = {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # 
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
-rPIDvalue = 0.0
 pitchPID =  PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
-pPIDvalue = 0.0
 heightPID = PID(h_gains['kp'], h_gains['ki'], h_gains['kd'], h_gains['filter_bandwidth'], 0, 0, update_rate, h_gains['iMax'], -h_gains['iMax'])
-hPIDvalue = 0.0
 yawPID =    PID(y_gains['kp'], y_gains['ki'], y_gains['kd'], y_gains['filter_bandwidth'], 0, 0, update_rate, y_gains['iMax'], -y_gains['iMax'])
-yPIDvalue = 0.0
+rPIDvalue = pPIDvalue = yPIDvalue = hPIDvalue = 0.0
 
 # Filters initialization
 f_yaw   = low_pass(20,update_rate)
 f_pitch = low_pass(20,update_rate)
 f_roll  = low_pass(20,update_rate)
+f_desx  = low_pass(20,update_rate)
+f_desy  = low_pass(20,update_rate)
+
+# Calculate velocities
+vel_x = velocity(20,update_rate)
+vel_y = velocity(20,update_rate)
+vel_z = velocity(20,update_rate)
 
 # Function to update commands and attitude to be called by a thread
 def control():
     global vehicle, rcCMD
     global rollPID, pitchPID, heightPID, yawPID
-    global desiredPos, currentPos
+    global desiredPos, currentPos, velocities
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue, yPIDvalue
-    global f_yaw, f_pitch, f_roll
-    global ky
+    global f_yaw, f_pitch, f_roll, f_desx, f_desy
+    global vel_x, vel_y, vel_z
 
     while True:
         if udp.active:
@@ -80,23 +88,22 @@ def control():
     try:
         if logging:
             st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-            f = open("logs/mw-"+st, "w")
+            f = open("logs/mw-hybrid-"+st, "w")
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | D -> desired position 
             # M -> motion capture | C -> commanded controls | sl -> Second marker | Mode 
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
-                             'slx','sly','slz','slr','slp','sly' ))
+                             'slx','sly','slz','slr','slp','sly', \
+                             'vel_x', 'vel_y', 'vel_z', 'vel_fx', 'vel_fy', 'vel_fz' ))
         while True:
             # Variable to time the loop
             current = time.time()
             elapsed = 0
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
-            rcCMD[0] = udp.message[0]
-            rcCMD[1] = udp.message[1]
-            rcCMD[2] = udp.message[2]
-            rcCMD[3] = udp.message[3]
+            for channel in range(0, 3):
+                rcCMD[channel] = int(udp.message[channel])
 
             # Coordinate map from Optitrack in the MAST Lab: X, Y, Z. NED: If going up, Z is negative. 
             ######### WALL ########
@@ -113,16 +120,21 @@ def control():
             currentPos['y'] = udp.message[6]
             currentPos['z'] = -udp.message[7]
 
+            # Get velocities of the vehicle
+            velocities['x'],velocities['fx'] = vel_x(currentPos['x'])
+            velocities['y'],velocities['fy'] = vel_y(currentPos['y'])
+            velocities['z'],velocities['fz'] = vel_z(currentPos['z'])
+
+            # Update vehicle Attitude 
+            vehicle.getData(MultiWii.ATTITUDE)
+
             # Desired position changed using joystick movements
             if udp.message[4] == 1:
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = mapping(udp.message[1],1000,2000,-2.0,2.0)
-                desiredPos['y'] = mapping(udp.message[0],1000,2000,-2.0,2.0)
-
-            # Update vehicle Attitude 
-            vehicle.getData(MultiWii.ATTITUDE)
+                desiredPos['x'] = f_desx.update(mapping(udp.message[1],1000,2000,-2.0,2.0))
+                desiredPos['y'] = f_desy.update(mapping(udp.message[0],1000,2000,-2.0,2.0))
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -138,11 +150,11 @@ def control():
             cosYaw = cos(heading)
 
             # Conversion from desired accelerations to desired angle commands
-            desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
-            desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
+            desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ), 1, 50)
+            desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ), 1, 50)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
-            desiredThrottle = (desiredThrottle / kt) + u0
-            desiredYaw = 1500 - (yPIDvalue * ky)
+            desiredThrottle = round((desiredThrottle / kt) + u0 ,0)
+            desiredYaw = round(1500 - (yPIDvalue * ky) ,0)
 
             # Limit commands for safety
             if udp.message[4] == 1:
@@ -158,7 +170,7 @@ def control():
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'Hybrid'
             else:
-                # Prevent integrators/derivators to increase if they are not in use
+                # Prevent integrators to increase if they are not in use
                 rollPID.resetIntegrator()
                 pitchPID.resetIntegrator()
                 heightPID.resetIntegrator()
@@ -171,22 +183,21 @@ def control():
 
             row =   (time.time(), \
                     vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
-                    #vehicle.rawIMU['ax'], vehicle.rawIMU['ay'], vehicle.rawIMU['az'], vehicle.rawIMU['gx'], vehicle.rawIMU['gy'], vehicle.rawIMU['gz'], \
-                    #vehicle.rcChannels['roll'], vehicle.rcChannels['pitch'], vehicle.rcChannels['throttle'], vehicle.rcChannels['yaw'], \
                     udp.message[0], udp.message[1], udp.message[2], udp.message[3], \
                     currentPos['x'], currentPos['y'], currentPos['z'], desiredPos['x'], desiredPos['y'], desiredPos['z'], \
                     udp.message[11], udp.message[13], udp.message[12], \
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
-                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16] )
+                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
+                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'] )
 
             if logging:
                 logger.writerow(row)
 
             if mode is 'Auto' or 'Manual':
-                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
-            if mode is 'Hybrid':
-                print "Mode: %s | Des_X: %0.3f | Des_Y: %0.3f" % (mode, desiredPos['x'], desiredPos['y'])                
+                print "Mode: %s | X: %0.2f | Y: %0.2f | Z: %0.2f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
+            elif mode is 'Hybrid':
+                print "Mode: %s | Des_X: %0.2f | Des_Y: %0.2f" % (mode, desiredPos['x'], desiredPos['y'])                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
