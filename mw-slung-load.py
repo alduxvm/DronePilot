@@ -113,7 +113,7 @@ def control():
             elapsed = 0
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
-            for channel in range(0, 3):
+            for channel in range(0, 4):
                 rcCMD[channel] = int(udp.message[channel])
 
             # Coordinate map from Optitrack in the MAST Lab: X, Y, Z. NED: If going up, Z is negative. 
@@ -136,9 +136,9 @@ def control():
             sl_currentPos['y'] = udp.message[9]
 
             # Get velocities of the vehicle
-            velocities['x'],velocities['fx'] = vel_x(currentPos['x'])
-            velocities['y'],velocities['fy'] = vel_y(currentPos['y'])
-            velocities['z'],velocities['fz'] = vel_z(currentPos['z'])
+            velocities['x'],velocities['fx'] = vel_x.get_velocity(currentPos['x'])
+            velocities['y'],velocities['fy'] = vel_y.get_velocity(currentPos['y'])
+            velocities['z'],velocities['fz'] = vel_z.get_velocity(currentPos['z'])
 
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
@@ -152,8 +152,8 @@ def control():
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = limit(sl_xPIDvalue, -2.0, 2.0)
-                desiredPos['y'] = limit(sl_yPIDvalue, -2.0, 2.0)
+                desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue, -1.0, 1.0))
+                desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue, -1.0, 1.0))
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -180,16 +180,16 @@ def control():
 
             # Limit commands for safety
             if udp.message[4] == 1:
-                rcCMD[0] = limit(desiredRoll,1000,2000)
-                rcCMD[1] = limit(desiredPitch,1000,2000)
+                rcCMD[0] = limit(desiredRoll,1200,1800)
+                rcCMD[1] = limit(desiredPitch,1200,1800)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
-                slx_PID.resetIntegrator()
-                sly_PID.resetIntegrator()
+                slx_posPID.resetIntegrator()
+                sly_pos PID.resetIntegrator()
                 mode = 'Auto'
             elif udp.message[4] == 2:
-                rcCMD[0] = limit(sl_desiredRoll,1000,2000)
-                rcCMD[1] = limit(sl_desiredPitch,1000,2000)
+                rcCMD[0] = limit(desiredRoll,1200,1800)
+                rcCMD[1] = limit(desiredPitch,1200,1800)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'SlungLoad'
@@ -199,8 +199,8 @@ def control():
                 pitchPID.resetIntegrator()
                 heightPID.resetIntegrator()
                 yawPID.resetIntegrator()
-                slx_PID.resetIntegrator()
-                sly_PID.resetIntegrator()
+                slx_posPID.resetIntegrator()
+                sly_posPID.resetIntegrator()
                 mode = 'Manual'
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
@@ -223,7 +223,7 @@ def control():
             if mode is 'Auto' or 'Manual':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
             elif mode is 'SlungLoad':
-                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_xPIDvalue, sl_yPIDvalue)                
+                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, desiredPos['x'], desiredPos['y'])                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:

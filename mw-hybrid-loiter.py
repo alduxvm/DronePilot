@@ -102,7 +102,7 @@ def control():
             elapsed = 0
 
             # Update joystick commands from UDP communication, order (roll, pitch, yaw, throttle)
-            for channel in range(0, 3):
+            for channel in range(0, 4):
                 rcCMD[channel] = int(udp.message[channel])
 
             # Coordinate map from Optitrack in the MAST Lab: X, Y, Z. NED: If going up, Z is negative. 
@@ -121,9 +121,9 @@ def control():
             currentPos['z'] = -udp.message[7]
 
             # Get velocities of the vehicle
-            velocities['x'],velocities['fx'] = vel_x(currentPos['x'])
-            velocities['y'],velocities['fy'] = vel_y(currentPos['y'])
-            velocities['z'],velocities['fz'] = vel_z(currentPos['z'])
+            velocities['x'],velocities['fx'] = vel_x.get_velocity(currentPos['x'])
+            velocities['y'],velocities['fy'] = vel_y.get_velocity(currentPos['y'])
+            velocities['z'],velocities['fz'] = vel_z.get_velocity(currentPos['z'])
 
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
@@ -133,7 +133,7 @@ def control():
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = f_desx.update(mapping(udp.message[1],1000,2000,-2.0,2.0))
+                desiredPos['x'] = f_desx.update(mapping(udp.message[1],1000,2000,-1.0,1.0))
                 desiredPos['y'] = f_desy.update(mapping(udp.message[0],1000,2000,-2.0,2.0))
 
             # Filter new values before using them
@@ -158,14 +158,14 @@ def control():
 
             # Limit commands for safety
             if udp.message[4] == 1:
-                rcCMD[0] = limit(desiredRoll,1000,2000)
-                rcCMD[1] = limit(desiredPitch,1000,2000)
+                rcCMD[0] = limit(desiredRoll,1200,1800)
+                rcCMD[1] = limit(desiredPitch,1200,1800)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'Auto'
             elif udp.message[4] == 2:
-                rcCMD[0] = limit(desiredRoll,1000,2000)
-                rcCMD[1] = limit(desiredPitch,1000,2000)
+                rcCMD[0] = limit(desiredRoll,1200,1800)
+                rcCMD[1] = limit(desiredPitch,1200,1800)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'Hybrid'
