@@ -50,7 +50,7 @@ desiredThrottle = 1000
 p_gains =  {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
 h_gains =  {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
 y_gains =  {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # Yaw Controller gains
-sl_gains = {'kp': 1.67, 'ki':0.0,  'kd':2.73, 'iMax':2, 'filter_bandwidth':30} # Slung load controller gains (slower than position)
+sl_gains = {'kp': 1.67, 'ki':0.0,  'kd':2.73, 'iMax':2, 'filter_bandwidth':10} # Slung load controller gains (slower than position)
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -70,8 +70,8 @@ f_pitch = low_pass(20,update_rate)
 f_roll  = low_pass(20,update_rate)
 
 # Desired positions filters
-f_desx  = low_pass(30,update_rate)
-f_desy  = low_pass(30,update_rate)
+f_desx  = low_pass(10,update_rate)
+f_desy  = low_pass(10,update_rate)
 
 # Calculate velocities
 vel_x = velocity(20,update_rate)
@@ -187,7 +187,7 @@ def control():
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 slx_posPID.resetIntegrator()
-                sly_pos PID.resetIntegrator()
+                sly_posPID.resetIntegrator()
                 mode = 'Auto'
             elif udp.message[4] == 2:
                 rcCMD[0] = limit(desiredRoll,1200,1800)
