@@ -95,7 +95,7 @@ def control():
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
                              'slx','sly','slz','slr','slp','sly', \
-                             'vel_x', 'vel_y', 'vel_z', 'vel_fx', 'vel_fy', 'vel_fz' ))
+                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz' ))
         while True:
             # Variable to time the loop
             current = time.time()

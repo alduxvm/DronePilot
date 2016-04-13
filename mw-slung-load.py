@@ -50,7 +50,7 @@ desiredThrottle = 1000
 p_gains =  {'kp': 2.61, 'ki':0.57, 'kd':3.41, 'iMax':2, 'filter_bandwidth':50} # Position Controller gains
 h_gains =  {'kp': 4.64, 'ki':1.37, 'kd':4.55, 'iMax':2, 'filter_bandwidth':50} # Height Controller gains
 y_gains =  {'kp': 1.0,  'ki':0.0,  'kd':0.0,  'iMax':2, 'filter_bandwidth':50} # Yaw Controller gains
-sl_gains = {'kp': 1.67, 'ki':0.29, 'kd':2.73, 'iMax':2, 'filter_bandwidth':10} # Slung load controller gains (slower than position)
+sl_gains = {'kp': 1.67, 'ki':0.0,  'kd':2.73, 'iMax':2, 'filter_bandwidth':30} # Slung load controller gains (slower than position)
 
 # PID modules initialization
 rollPID =   PID(p_gains['kp'], p_gains['ki'], p_gains['kd'], p_gains['filter_bandwidth'], 0, 0, update_rate, p_gains['iMax'], -p_gains['iMax'])
@@ -68,8 +68,10 @@ sl_xPIDvalue = sl_yPIDvalue = 0.0
 f_yaw   = low_pass(20,update_rate)
 f_pitch = low_pass(20,update_rate)
 f_roll  = low_pass(20,update_rate)
-f_desx  = low_pass(20,update_rate)
-f_desy  = low_pass(20,update_rate)
+
+# Desired positions filters
+f_desx  = low_pass(30,update_rate)
+f_desy  = low_pass(30,update_rate)
 
 # Calculate velocities
 vel_x = velocity(20,update_rate)
@@ -106,7 +108,7 @@ def control():
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
                              'slx','sly','slz','slr','slp','sly', \
-                             'vel_x', 'vel_y', 'vel_z', 'vel_fx', 'vel_fy', 'vel_fz' ))
+                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -152,8 +154,8 @@ def control():
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue, -1.0, 1.0))
-                desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue, -1.0, 1.0))
+                desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue), -1.0, 1.0)
+                desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue), -1.0, 1.0)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
