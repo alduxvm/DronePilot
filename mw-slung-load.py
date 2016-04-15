@@ -145,9 +145,9 @@ def control():
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
 
-            # Slung load PID updating and limiting 
-            sl_xPIDvalue = slx_posPID.update(0.0 - sl_currentPos['x'])
-            sl_yPIDvalue = sly_posPID.update(0.0 - sl_currentPos['y'])
+            # Slung load PID calculation, the relative position of the vehicle vs the slung load
+            sl_xPIDvalue = slx_posPID.update(currentPos['x'] - sl_currentPos['x'])
+            sl_yPIDvalue = sly_posPID.update(currentPos['y'] - sl_currentPos['y'])
 
             # Desired position changed using slung load movements
             if udp.message[4] == 1: # 
