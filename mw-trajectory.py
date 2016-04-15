@@ -28,9 +28,9 @@ uh = 1360 # Hover throttle command
 kt = vehicle_weight * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
 
-# Trajectory
-radius = 1
-w = (2*pi)/25
+# Circle trajectory configuration
+radius = 0.8 # Circle radius
+w = (2*pi)/6 # It will take 6 seconds to complete a circle
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -92,7 +92,7 @@ def control():
     try:
         if logging:
             st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-            f = open("logs/mw-hybrid-"+st, "w")
+            f = open("logs/mw-trajectory-"+st, "w")
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | D -> desired position 
             # M -> motion capture | C -> commanded controls | sl -> Second marker | Mode 
@@ -134,11 +134,11 @@ def control():
 
             # Desired position changed using joystick movements
             if udp.message[4] == 1:
-                desiredPos['x'] = 0.0
+                desiredPos['x'] = radius
                 desiredPos['y'] = 0.0
                 trajectory_step = 0.0
             if udp.message[4] == 2:
-                x,y = circle(radius, w, trajectory_step)
+                x,y = circle_trajectory(radius, w, trajectory_step)
                 desiredPos['x'] = x
                 desiredPos['y'] = y
                 trajectory_step += update_rate

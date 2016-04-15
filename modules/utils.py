@@ -11,7 +11,7 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-from math import cos,sin,pi
+from math import cos,sin,pi,radians,degrees
 
 g = 9.81 # m/s2 - gravity
 
