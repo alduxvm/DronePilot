@@ -11,6 +11,8 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
+from math import cos,sin,pi
+
 g = 9.81 # m/s2 - gravity
 
 """ Function to map a value to another """
@@ -171,3 +173,9 @@ class velocity:
         self.filter = self.filter_past + self.dt * ( self.filter_bandwidth * ( self.vel - self.filter_past ) )
         self.filter_past = self.filter
         return self.vel,self.filter
+
+""" Function that returns the x and y coordinates of a circle with specific radius and speed, to be used for trajectories """
+def circle_trajectory(r, w, step):
+    x = round(r*cos(w*(step)),2)
+    y = round(r*sin(w*(step)),2)
+    return x,y

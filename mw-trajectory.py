@@ -14,7 +14,7 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, csv, threading
-from math import *
+#from math import cos,sin
 from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
@@ -27,6 +27,10 @@ u0 = 1000 # Zero throttle command
 uh = 1360 # Hover throttle command
 kt = vehicle_weight * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
+
+# Trajectory
+radius = 1
+w = (2*pi)/25
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -132,9 +136,12 @@ def control():
             if udp.message[4] == 1:
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
+                trajectory_step = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = f_desx.update(mapping(udp.message[1],1000,2000,-1.0,1.0))
-                desiredPos['y'] = f_desy.update(mapping(udp.message[0],1000,2000,-2.0,2.0))
+                x,y = circle(radius, w, trajectory_step)
+                desiredPos['x'] = x
+                desiredPos['y'] = y
+                trajectory_step += update_rate
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
