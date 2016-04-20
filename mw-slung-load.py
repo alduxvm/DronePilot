@@ -33,7 +33,7 @@ ky = 500 / pi # Yaw controller gain
 vehicle = MultiWii("/dev/ttyUSB0")
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.6} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 sl_currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 
@@ -220,10 +220,12 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            if mode == 'Auto' or 'Manual':
-                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
+            if mode == 'Manual':
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | Heading: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], heading)                
+            if mode == 'Auto':
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, desiredPos['x'], desiredPos['y'])                
+                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_currentPos['x'], sl_currentPos['y'])                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
