@@ -11,7 +11,7 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-from math import cos,sin,pi,radians,degrees
+from math import cos,sin,pi,radians,degrees,sqrt
 
 g = 9.81 # m/s2 - gravity
 
@@ -176,6 +176,13 @@ class velocity:
 
 """ Function that returns the x and y coordinates of a circle with specific radius and speed, to be used for trajectories """
 def circle_trajectory(r, w, step):
-    x = round(r*cos(w*(step)),2)
-    y = round(r*sin(w*(step)),2)
+    x = round(r*cos(w*step),2)
+    y = round(r*sin(w*step),2)
+    return x,y
+
+
+""" Function that returns the x and y coordinates of an infinity figure, figure of eight, also known as the lemniscate of Bernoulli. """
+def infinity_trajectory(a, b, w, step):
+    x = round( a*sqrt(2)*cos(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
+    y = round( b*sqrt(2)*cos(w*step)*sin(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
     return x,y

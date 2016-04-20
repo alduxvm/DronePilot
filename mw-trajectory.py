@@ -14,7 +14,6 @@ __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
 import time, datetime, csv, threading
-#from math import cos,sin
 from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
@@ -28,9 +27,14 @@ uh = 1360 # Hover throttle command
 kt = vehicle_weight * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
 
-# Circle trajectory configuration
+# Trajectory configuration
+trajectory = 'circle'
+w = (2*pi)/8 # It will take 6 seconds to complete a circle
+# For Circle
 radius = 0.8 # Circle radius
-w = (2*pi)/6 # It will take 6 seconds to complete a circle
+# Infinity trajectory configuration
+a = 0.7 
+b = 1.0
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
@@ -138,10 +142,16 @@ def control():
                 desiredPos['y'] = 0.0
                 trajectory_step = 0.0
             if udp.message[4] == 2:
-                x,y = circle_trajectory(radius, w, trajectory_step)
-                desiredPos['x'] = x
-                desiredPos['y'] = y
-                trajectory_step += update_rate
+                if trajectory == 'circle':
+                    x,y = circle_trajectory(radius, w, trajectory_step)
+                    desiredPos['x'] = x
+                    desiredPos['y'] = y
+                    trajectory_step += update_rate
+                elif trajectory == 'infinity':
+                    x,y = infinity_trajectory(a, b, w, trajectory_step)
+                    desiredPos['x'] = x
+                    desiredPos['y'] = y
+                    trajectory_step += update_rate
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -201,9 +211,9 @@ def control():
             if logging:
                 logger.writerow(row)
 
-            if mode is 'Auto' or 'Manual':
+            if mode == 'Auto' or 'Manual':
                 print "Mode: %s | X: %0.2f | Y: %0.2f | Z: %0.2f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
-            elif mode is 'Hybrid':
+            elif mode == 'Hybrid':
                 print "Mode: %s | Des_X: %0.2f | Des_Y: %0.2f" % (mode, desiredPos['x'], desiredPos['y'])                
 
             # Wait until the update_rate is completed 
