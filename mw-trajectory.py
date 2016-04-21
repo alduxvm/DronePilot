@@ -29,12 +29,12 @@ ky = 500 / pi # Yaw controller gain
 
 # Trajectory configuration
 trajectory = 'circle'
-w = (2*pi)/8 # It will take 6 seconds to complete a circle
+w = (2*pi)/12 # It will take 6 seconds to complete a circle
 # For Circle
 radius = 0.8 # Circle radius
 # Infinity trajectory configuration
-a = 0.7 
-b = 1.0
+a = 1.0
+b = 1.2
 
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")

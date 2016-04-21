@@ -183,6 +183,6 @@ def circle_trajectory(r, w, step):
 
 """ Function that returns the x and y coordinates of an infinity figure, figure of eight, also known as the lemniscate of Bernoulli. """
 def infinity_trajectory(a, b, w, step):
-    x = round( a*sqrt(2)*cos(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
-    y = round( b*sqrt(2)*cos(w*step)*sin(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
+    y = round( a*sqrt(2)*cos(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
+    x = round( b*sqrt(2)*cos(w*step)*sin(w*step) / (sin(w*step)*sin(w*step) + 1) ,2)
     return x,y
