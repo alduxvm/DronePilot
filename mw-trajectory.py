@@ -143,14 +143,10 @@ def control():
                 trajectory_step = 0.0
             if udp.message[4] == 2:
                 if trajectory == 'circle':
-                    x,y = circle_trajectory(radius, w, trajectory_step)
-                    desiredPos['x'] = x
-                    desiredPos['y'] = y
+                    desiredPos['x'], desiredPos['y'] = circle_trajectory(radius, w, trajectory_step)
                     trajectory_step += update_rate
                 elif trajectory == 'infinity':
-                    x,y = infinity_trajectory(a, b, w, trajectory_step)
-                    desiredPos['x'] = x
-                    desiredPos['y'] = y
+                    desiredPos['x'], desiredPos['y'] = infinity_trajectory(a, b, w, trajectory_step)
                     trajectory_step += update_rate
 
             # Filter new values before using them

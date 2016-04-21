@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """ Drone Pilot - Control of MRUAV """
-""" mw-slung-load.py: Script that calculates pitch and roll movements for a vehicle 
+""" mw-slung-load-trajectory.py: Script that calculates pitch and roll movements for a vehicle 
     with MultiWii flight controller and a MoCap system in order to keep a slung load on a 
-    specified position."""
+    specified position while tracking a specified trajectory."""
 
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2016 Aldux.net"
 
 __license__ = "GPL"
-__version__ = "1.1"
+__version__ = "1.0"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -29,13 +29,23 @@ kt = vehicle_weight * g / (uh-u0)
 kt_sl = (vehicle_weight + sl_weight) * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
 
+# Trajectory configuration
+trajectory = 'circle'
+w = (2*pi)/12 # It will take 6 seconds to complete a circle
+# For Circle
+radius = 0.8 # Circle radius
+# Infinity trajectory configuration
+a = 1.0
+b = 1.2
+
 # MRUAV initialization
 vehicle = MultiWii("/dev/ttyUSB0")
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':1.0} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.6} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 sl_currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
+trajectory = {'x':0.0, 'y':0.0, 'z':0.0} # Trajectory that the vehicle will follow
 
 # Velocity
 velocities = {'x':0.0, 'y':0.0, 'z':0.0, 'fx':0.0, 'fy':0.0, 'fz':0.0}
@@ -81,7 +91,7 @@ vel_z = velocity(20,update_rate)
 def control():
     global vehicle, rcCMD
     global rollPID, pitchPID, heightPID, yawPID
-    global desiredPos, currentPos, velocities
+    global desiredPos, currentPos, velocities, trajectory
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue, yPIDvalue
     global f_yaw, f_pitch, f_roll, f_desx, f_desy
@@ -106,7 +116,8 @@ def control():
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
                              'slx','sly','slz','slr','slp','sly', \
-                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz' ))
+                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz', \
+                             'tray_x', 'tray_y' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -149,18 +160,21 @@ def control():
 
             # Desired position changed using slung load movements
             if udp.message[4] == 1:  
-                desiredPos['x'] = 0.0
+                desiredPos['x'] = radius
                 desiredPos['y'] = 0.0
+                trajectory_step = 0.0
+                trajectory['x'], trajectory['y'] = 0,0
             if udp.message[4] == 2:
-                desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue), -1.0, 1.0)
-                desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue), -1.0, 1.0)
+                desiredPos['x'] = limit(sl_xPIDvalue, -2.0, 2.0)
+                desiredPos['y'] = limit(sl_yPIDvalue, -2.0, 2.0)
+                trajectory['x'], trajectory['y'] = circle_trajectory(radius, w, trajectory_step)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
-            rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
-            pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
+            rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
+            pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
             
@@ -214,16 +228,19 @@ def control():
                     udp.message[11], udp.message[13], udp.message[12], \
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
-                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16],
-                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'] )
+                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
+                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'], \
+                    trajectory['x'], trajectory['y'] )
 
             if logging:
                 logger.writerow(row)
 
-            if mode == 'Auto' or 'Manual':
-                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | SL_X: %0.3f | SL_Y: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], sl_currentPos['x'], sl_currentPos['y'])
+            if mode == 'Manual':
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f | Heading: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'], heading)                
+            if mode == 'Auto':
+                print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, desiredPos['x'], desiredPos['y'])                
+                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" % (mode, trajectory['x'], trajectory['y'])               
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:

@@ -214,7 +214,7 @@ def control():
                     udp.message[11], udp.message[13], udp.message[12], \
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
-                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16],
+                    udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
                     velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'] )
 
             if logging:
