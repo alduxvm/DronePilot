@@ -31,7 +31,7 @@ ky = 500 / pi # Yaw controller gain
 
 # Trajectory configuration
 trajectory = 'circle'
-w = (2*pi)/12 # It will take 6 seconds to complete a circle
+w = (2*pi)/15 # It will take 6 seconds to complete a circle
 # For Circle
 radius = 0.8 # Circle radius
 # Infinity trajectory configuration
@@ -168,6 +168,7 @@ def control():
                 desiredPos['x'] = limit(sl_xPIDvalue, -2.0, 2.0)
                 desiredPos['y'] = limit(sl_yPIDvalue, -2.0, 2.0)
                 trajectory['x'], trajectory['y'] = circle_trajectory(radius, w, trajectory_step)
+                trajectory_step += update_rate
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -177,10 +178,8 @@ def control():
                 rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
                 pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
             if udp.message[4] == 2:
-                #rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
-                #pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
-                rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
-                pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
+                rPIDvalue = rollPID.update(  trajectory['y'] + desiredPos['y'] - currentPos['y'] )
+                pPIDvalue = pitchPID.update( trajectory['x'] + desiredPos['x'] - currentPos['x'] )
 
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
@@ -247,7 +246,7 @@ def control():
             if mode == 'Auto':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" % (mode, (trajectory['x'] - (desiredPos['x'] - currentPos['x']), (trajectory['y'] - (desiredPos['y'] - currentPos['y']))               
+                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" %  (mode, trajectory['x'], trajectory['y'])               
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
