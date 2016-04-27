@@ -173,8 +173,13 @@ def control():
             heading = f_yaw.update(udp.message[12])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
-            rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
-            pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
+            if udp.message[4] == 1:
+                rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
+                pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
+            if udp.message[4] == 2:
+                rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
+                pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
+
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
             
