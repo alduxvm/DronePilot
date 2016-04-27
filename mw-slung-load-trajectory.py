@@ -177,8 +177,10 @@ def control():
                 rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
                 pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
             if udp.message[4] == 2:
-                rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
-                pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
+                #rPIDvalue = rollPID.update(  trajectory['y'] - (desiredPos['y'] - currentPos['y']))
+                #pPIDvalue = pitchPID.update( trajectory['x'] - (desiredPos['x'] - currentPos['x']))
+                rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
+                pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
 
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
@@ -245,7 +247,7 @@ def control():
             if mode == 'Auto':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" % (mode, trajectory['x'], trajectory['y'])               
+                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" % (mode, (trajectory['x'] - (desiredPos['x'] - currentPos['x']), (trajectory['y'] - (desiredPos['y'] - currentPos['y']))               
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
