@@ -30,7 +30,7 @@ kt_sl = (vehicle_weight + sl_weight) * g / (uh-u0)
 ky = 500 / pi # Yaw controller gain
 
 # Trajectory configuration
-trajectory = 'circle'
+trajectory = 'circl'
 w = (2*pi)/12 # It will take 6 seconds to complete a circle
 # For Circle
 radius = 0.8 # Circle radius
