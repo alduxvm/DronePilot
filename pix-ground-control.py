@@ -100,7 +100,7 @@ class user_interaction(cmd.Cmd):
             print "Mode: %s" % vehicle.mode.name    # settable
             print "Armed: %s" % vehicle.armed    # settable
         else:
-            print "\nMod:%s %s | Pwr:%s%%, %sv, %sa | Alt:%sm | %s\n" % (vehicle.mode.name, vehicle.armed, vehicle.battery.level, vehicle.battery.voltage, vehicle.battery.current, vehicle.location.global_relative_frame.alt, vehicle.gps_0 )
+            print "\nMod:%s %s | Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm | %s\n" % (vehicle.mode.name, vehicle.armed, vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), vehicle.gps_0 )
 
     def do_param(self, line):
         """param 
@@ -131,14 +131,18 @@ class user_interaction(cmd.Cmd):
         Attempts to takeoff the vehicle at the specified altitude.
         If altitude not defined, the default it 10 meters.
         """
-        if altitude:
-            print "\n\tAttempting to start take off!!"
-            print "\tTaking off at %s meters\n" % altitude
-            arm_and_takeoff(vehicle, float(altitude))
+        if not vehicle.armed:
+            if altitude:
+                print "\n\tAttempting to start take off!!"
+                print "\tTaking off at %s meters\n" % altitude
+                arm_and_takeoff(vehicle, float(altitude))
+            else:
+                print "\n\tAttempting to start take off!!"
+                print "\tTaking off at default 10 meters\n"
+                arm_and_takeoff(vehicle, 10)
         else:
-            print "\n\tAttempting to start take off!!"
-            print "\tTaking off at default 10 meters\n"
-            arm_and_takeoff(vehicle, 10)
+            print "\n\tVehicle already flying.\n"
+            pass
 
     def do_land(self, line):
         """land
@@ -177,65 +181,82 @@ class user_interaction(cmd.Cmd):
         curses.noecho()
         curses.cbreak()
         screen.keypad(True)
-        screen.addstr(0,1,"Hit 'q' to exit this mode")
-        current = time.time()
-        elapsed = 0
+        screen.addstr(0, 4,"Hit 'q' to exit this mode")
+        screen.addstr(3, 15, '^') 
+        screen.addstr(4, 17, '>')
+        screen.addstr(4, 13, '<') 
+        screen.addstr(4, 10, 'L')
+        screen.addstr(4, 20, 'R')
+        screen.addstr(5, 15, 'v')
+        screen.addstr(7, 13, 'Brake')
+        screen.addstr(0, 0, '')
+        text="Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm \n Vel:%0.1fx, %0.1fy, %0.1fz" % (vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), float(vehicle.velocity[0]), float(vehicle.velocity[1]), float(vehicle.velocity[2]))
+        screen.addstr(10, 1, text)
+        #current = time.time()
+        #elapsed = 0
         try:
             while True:
                 char = screen.getch()
+                text="Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm \n Vel:%0.1fx, %0.1fy, %0.1fz" % (vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), float(vehicle.velocity[0]), float(vehicle.velocity[1]), float(vehicle.velocity[2]))
                 f=1*cos(radians(vehicle.heading))
                 b=1*sin(radians(vehicle.heading))
                 l=1*cos(radians(vehicle.heading-90))
                 r=1*sin(radians(vehicle.heading-90))
                 if char == ord('q'):
+                    curses.nocbreak(); screen.keypad(0); curses.echo()
+                    curses.endwin()
                     break
                 elif char == curses.KEY_RIGHT:
-                    screen.addstr(10, 20, 'Right ')
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')
                     #goto_position_target_local_ned(vehicle,0,-1,-10)
                     #time.sleep(1)
                     send_ned_velocity(vehicle,-l,-r,0,0.02)
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == curses.KEY_LEFT:
-                    screen.addstr(10, 10, 'Left  ') 
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')
                     #goto_position_target_local_ned(vehicle,0,1,-10)
                     #time.sleep(1)  
                     send_ned_velocity(vehicle,l,r,0,0.02) 
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == curses.KEY_UP:
-                    screen.addstr(7, 15, 'Forward') 
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')     
                     #goto_position_target_local_ned(vehicle,1,0,-10)
                     #time.sleep(1) 
                     send_ned_velocity(vehicle,f,b,0,0.02)
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == curses.KEY_DOWN:
-                    screen.addstr(14, 15, 'Back   ')
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')
                     #goto_position_target_local_ned(vehicle,-1,0,-10)
                     #time.sleep(1)
                     send_ned_velocity(vehicle,-f,-b,0,0.02)
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == ord('a'):
-                    screen.addstr(10, 10, 'Rotate left') 
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')     
                     #goto_position_target_local_ned(vehicle,1,0,-10)
                     #time.sleep(1) 
                     condition_yaw(vehicle,vehicle.heading-1)
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == ord('s'):
-                    screen.addstr(11, 20, 'Rotate right') 
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')     
                     #goto_position_target_local_ned(vehicle,1,0,-10)
                     #time.sleep(1) 
                     condition_yaw(vehicle,vehicle.heading+1)   
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == ord('b'):
+                    screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')     
                     send_ned_velocity(vehicle,0,0,0,1)
-                elapsed = time.time() - current
-                screen.addstr(2,1,str(round(elapsed,2)))
+                elif char == ord('r'):
+                    screen.addstr(10, 1, text)
+                    screen.addstr(0, 0, '')     
+                #elapsed = time.time() - current
+                #screen.addstr(2,1,str(round(elapsed,2)))
         finally:
             curses.nocbreak(); screen.keypad(0); curses.echo()
             curses.endwin()

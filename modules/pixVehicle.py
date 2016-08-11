@@ -46,9 +46,9 @@ def arm_and_takeoff(vehicle, aTargetAltitude):
     try:
         while vehicle.mode.name=="GUIDED":
             print " -> Alt: ", vehicle.location.global_relative_frame.alt
-            if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95: #Just below target, in case of undershoot.
-                print "Reached target altitude"
-                break;
+            if abs(vehicle.location.global_relative_frame.alt-aTargetAltitude) < 0.05: 
+                print "\n\tReached %0.1f m\n" % (aTargetAltitude)
+                break
             time.sleep(1)
     except KeyboardInterrupt:
         print "Keyboard Interrupt on arm_and_takeoff."
@@ -60,14 +60,15 @@ def go_to_alt(vehicle, target):
     Function that makes the vehicle travel to an specific lat/lon location. Measures distance and if the target is reached.
     """
     timeout = 20
+    condition_yaw(vehicle,vehicle.heading) 
     vehicle.simple_goto(target)
     start = time.time()    
     while vehicle.mode.name=="GUIDED":
         current = time.time() - start
         dTarget = sqrt(pow(target.lat-vehicle.location.global_frame.lat,2)+pow(target.lon-vehicle.location.global_frame.lon,2)+pow(target.alt-vehicle.location.global_frame.alt,2))
         print " -> T:%0.1f, Current:%0.1f, ToGo:%0.2f" % (current, vehicle.location.global_frame.alt, dTarget)
-        if abs(vehicle.location.global_relative_frame.alt-target.alt) < 0.01: 
-            print "\n\tReached %0.1fm in %0.1fsec!\n" % ((time.time()-start),target.alt)
+        if abs(vehicle.location.global_relative_frame.alt-target.alt) < 0.05: 
+            print "\n\tReached %0.1f m in %0.1f sec!\n" % (target.alt, current)
             break
         time.sleep(0.5)
 
