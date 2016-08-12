@@ -11,7 +11,7 @@ __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
-import time, threading, cmd, curses
+import time, threading, cmd, curses, sys, os
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from math import sin,cos,radians
 
@@ -100,7 +100,7 @@ class user_interaction(cmd.Cmd):
             print "Mode: %s" % vehicle.mode.name    # settable
             print "Armed: %s" % vehicle.armed    # settable
         else:
-            print "\nMod:%s %s | Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm | %s\n" % (vehicle.mode.name, vehicle.armed, vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), vehicle.gps_0 )
+            print "\nMod:%s %s | Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm | %s\n" % (vehicle.mode.name[:7], vehicle.armed, vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), vehicle.gps_0 )
 
     def do_param(self, line):
         """param 
@@ -113,6 +113,7 @@ class user_interaction(cmd.Cmd):
         """mode [desired_mode]
         Changes the mode of the vehicle to the selected one.
         Default mode is guided.
+        Modes: ['STABILIZE','ALT_HOLD','LAND','AUTO','GUIDED','LOITER','RTL','CIRCLE']
         """
         if mode:
             modes = ['STABILIZE','ALT_HOLD','LAND','AUTO','GUIDED','LOITER','RTL','CIRCLE']
@@ -153,7 +154,7 @@ class user_interaction(cmd.Cmd):
         vehicle.mode = VehicleMode("LAND")
         try:
             while vehicle.armed:
-                print " -> Alt: ", vehicle.location.global_relative_frame.alt
+                print " -> Alt:", vehicle.location.global_relative_frame.alt
                 time.sleep(0.5)
         except KeyboardInterrupt:
             print "KeyInterrupt on LAND."
@@ -192,6 +193,7 @@ class user_interaction(cmd.Cmd):
         screen.addstr(0, 0, '')
         text="Pwr:%s%%, %0.1fv, %0.1fa | Alt:%0.1fm \n Vel:%0.1fx, %0.1fy, %0.1fz" % (vehicle.battery.level, float(vehicle.battery.voltage), float(vehicle.battery.current), float(vehicle.location.global_relative_frame.alt), float(vehicle.velocity[0]), float(vehicle.velocity[1]), float(vehicle.velocity[2]))
         screen.addstr(10, 1, text)
+        screen.addstr(0, 0, '')
         #current = time.time()
         #elapsed = 0
         try:
@@ -203,8 +205,6 @@ class user_interaction(cmd.Cmd):
                 l=1*cos(radians(vehicle.heading-90))
                 r=1*sin(radians(vehicle.heading-90))
                 if char == ord('q'):
-                    curses.nocbreak(); screen.keypad(0); curses.echo()
-                    curses.endwin()
                     break
                 elif char == curses.KEY_RIGHT:
                     screen.addstr(10, 1, text)
@@ -239,14 +239,14 @@ class user_interaction(cmd.Cmd):
                     screen.addstr(0, 0, '')     
                     #goto_position_target_local_ned(vehicle,1,0,-10)
                     #time.sleep(1) 
-                    condition_yaw(vehicle,vehicle.heading-1)
+                    condition_yaw(vehicle,vehicle.heading-5)
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == ord('s'):
                     screen.addstr(10, 1, text)
                     screen.addstr(0, 0, '')     
                     #goto_position_target_local_ned(vehicle,1,0,-10)
                     #time.sleep(1) 
-                    condition_yaw(vehicle,vehicle.heading+1)   
+                    condition_yaw(vehicle,vehicle.heading+5)   
                     #send_ned_velocity(vehicle,0,0,0,0.01)
                 elif char == ord('b'):
                     screen.addstr(10, 1, text)
@@ -260,6 +260,7 @@ class user_interaction(cmd.Cmd):
         finally:
             curses.nocbreak(); screen.keypad(0); curses.echo()
             curses.endwin()
+            sys.stdout = os.fdopen(0, 'w', 0)
 
     def do_altitude(self, altitude):
         """altitude [how high?]

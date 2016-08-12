@@ -45,7 +45,7 @@ def arm_and_takeoff(vehicle, aTargetAltitude):
 
     try:
         while vehicle.mode.name=="GUIDED":
-            print " -> Alt: ", vehicle.location.global_relative_frame.alt
+            print " -> Alt:", vehicle.location.global_relative_frame.alt
             if abs(vehicle.location.global_relative_frame.alt-aTargetAltitude) < 0.05: 
                 print "\n\tReached %0.1f m\n" % (aTargetAltitude)
                 break
@@ -66,7 +66,7 @@ def go_to_alt(vehicle, target):
     while vehicle.mode.name=="GUIDED":
         current = time.time() - start
         dTarget = sqrt(pow(target.lat-vehicle.location.global_frame.lat,2)+pow(target.lon-vehicle.location.global_frame.lon,2)+pow(target.alt-vehicle.location.global_frame.alt,2))
-        print " -> T:%0.1f, Current:%0.1f, ToGo:%0.2f" % (current, vehicle.location.global_frame.alt, dTarget)
+        print " -> T: %0.1f, Alt: %0.1f, ToGo: %0.2f" % (current, vehicle.location.global_frame.alt, dTarget)
         if abs(vehicle.location.global_relative_frame.alt-target.alt) < 0.05: 
             print "\n\tReached %0.1f m in %0.1f sec!\n" % (target.alt, current)
             break
