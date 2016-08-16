@@ -3,7 +3,7 @@
 """ pix-goto.py -> Script that commands the vehicle to follow waypoints. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Aldux.net"
+__copyright__ = "Copyright 2015 Altax.net"
 
 __license__ = "GPL"
 __version__ = "2.0"

@@ -3,7 +3,7 @@
 """ pix-ground-control.py -> Script that controls in a semi-autonomous way a vehicle equipped with a flight-stack. DroneKit 2.0 related. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2016 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1.0"

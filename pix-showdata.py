@@ -3,7 +3,7 @@
 """ pix-showdata.py -> Script that shows data from a vehicle. DroneKit 2.0 related. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "2.0"
@@ -21,9 +21,9 @@ from modules.pixVehicle import *
 # SITL via TCP
 #vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
 # SITL via UDP 
-#vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
+vehicle = connect('udp:127.0.0.1:14549', wait_ready=True)
 # Real vehicle via Serial Port 
-vehicle = connect('/dev/tty.usbmodem1', wait_ready=False)
+#vehicle = connect('/dev/tty.usbmodem1', wait_ready=False)
 
 while True:
 	print "%s" % vehicle.attitude #SR2_EXTRA1

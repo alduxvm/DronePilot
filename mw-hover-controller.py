@@ -4,10 +4,10 @@
     with MultiWii flight controller and a MoCap system in order to keep a specified position."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2016 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
-__version__ = "1.2"
+__version__ = "1.5"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"

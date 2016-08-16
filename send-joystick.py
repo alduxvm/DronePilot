@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-"""joystick-sender.py: Reads a joystick device using pygame and sends the information via UDP."""
+"""send-joystick.py: Reads a joystick device using pygame and sends the information via UDP."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Altax.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1"

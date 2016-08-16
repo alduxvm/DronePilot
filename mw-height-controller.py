@@ -4,7 +4,7 @@
     with MultiWii flight controller and a HC-SR04 sonar in order to keep a specified altitude."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2016 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1"

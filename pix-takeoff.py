@@ -3,7 +3,7 @@
 """ pix-takeoff.py -> Script that makes a pixhawk take off in a secure way. DroneKit 2.0 related. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "2.0"
