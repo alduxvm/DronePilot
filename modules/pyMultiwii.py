@@ -3,7 +3,7 @@
 """multiwii.py: Handles Multiwii Serial Protocol."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2014 Aldux.net"
+__copyright__ = "Copyright 2014 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1.5"

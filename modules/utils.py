@@ -3,7 +3,7 @@
 """utils.py: Several utilitarian functions needed in the DronePilot ecosystem."""
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2016 Aldux.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1.1"

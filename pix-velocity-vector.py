@@ -8,7 +8,6 @@ __copyright__ = "Copyright 2016 Altax.net"
 __license__ = "GPL"
 __version__ = "1"
 __maintainer__ = "Aldo Vargas"
-__maintainer__ = "Kyle Brown"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
 
