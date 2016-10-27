@@ -3,7 +3,7 @@
 """ pix-joystick.py -> Script that send the vehicle joystick override using data from a UDP server. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Altax.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "2.0"

@@ -3,7 +3,7 @@
 """ mw-neural.py: Totally experimental stuff. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Altax.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "1.2"

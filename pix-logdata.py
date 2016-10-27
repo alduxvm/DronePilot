@@ -3,7 +3,7 @@
 """ pix-logdata.py -> Script that logs data from a vehicle and a MoCap system. DroneApi related. """
 
 __author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2015 Altax.net"
+__copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
 __version__ = "2.0"
