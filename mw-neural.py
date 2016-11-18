@@ -2,6 +2,8 @@
 """ Drone Pilot - Control of MRUAV """
 """ mw-neural.py: Totally experimental stuff. """
 
+
+
 __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2016 Altax.net"
 

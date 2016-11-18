@@ -18,6 +18,10 @@ from modules.utils import *
 from modules.pyMultiwii import MultiWii
 import modules.UDPserver as udp
 
+import pandas as pd
+import numpy as np
+import modules.pyrenn as prn
+
 # Main configuration
 logging = True
 update_rate = 0.01 # 100 hz loop cycle
@@ -88,6 +92,13 @@ def control():
     global vel_x, vel_y, vel_z
     global sl_currentPos, sl_xPIDvalue, sl_yPIDvalue, slx_posPID, sly_posPID
 
+    # Start Neural network
+    print "Starting neural network..."
+    net = prn.loadNN('modules/sl_rtrl_best.csv')
+    # Array of inputs to network 
+    inputs = np.zeros((10,1))
+    print "Neural network active!"
+
     while True:
         if udp.active:
             print "UDP server is active..."
@@ -99,14 +110,15 @@ def control():
     try:
         if logging:
             st = datetime.datetime.fromtimestamp(time.time()).strftime('%m_%d_%H-%M-%S')+".csv"
-            f = open("logs/mw-sl-"+st, "w")
+            f = open("logs/mw-sl-neural-"+st, "w")
             logger = csv.writer(f)
             # V -> vehicle | P -> pilot (joystick) | D -> desired position 
             # M -> motion capture | C -> commanded controls | sl -> Second marker | Mode 
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
                              'slx','sly','slz','slr','slp','sly', \
-                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz' ))
+                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz', \
+                             'NNslX','NNslY' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -204,6 +216,15 @@ def control():
                 mode = 'Manual'
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
 
+            # Neural network update
+            # Order of the inputs -> vehicle roll, vehicle pitch, vehicle yaw, x, y, z, roll, pitch, yaw, throttle
+            np.put(inputs, [0,1,2,3,4,5,6,7,8,9], \
+                [vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                 currentPos['x'], currentPos['y'], currentPos['z'], \
+                 rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3] ])
+            # Get output of neural network
+            outputs = prn.NNOut(inputs,net)
+
             # Send commands to vehicle
             vehicle.sendCMD(8,MultiWii.SET_RAW_RC,rcCMD)
 
@@ -215,7 +236,8 @@ def control():
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
                     udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
-                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'] )
+                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'], \
+                    outputs[0,0], outputs[1,0] )
 
             if logging:
                 logger.writerow(row)
