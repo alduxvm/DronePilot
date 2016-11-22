@@ -94,7 +94,9 @@ def control():
 
     # Start Neural network
     print "Starting neural network..."
-    net = prn.loadNN('modules/sl_rtrl_best.csv')
+    #net = prn.loadNN('modules/sl_rtrl_best.csv')
+    net = prn.loadNN('modules/sl_rtrl_500.csv')
+    #net = prn.loadNN('modules/sl_bptt_500.csv')
     # Array of inputs to network 
     inputs = np.zeros((10,1))
     print "Neural network active!"
@@ -203,7 +205,7 @@ def control():
                 #rcCMD[0] = limit(desiredRoll,1200,1800)
                 #rcCMD[1] = limit(desiredPitch,1200,1800)
                 #rcCMD[2] = limit(desiredYaw,1000,2000)
-                rcCMD[3] = limit(desiredThrottle,1000,2000)
+                #rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'SlungLoad'
             else:
                 # Prevent integrators/derivators to increase if they are not in use
