@@ -166,8 +166,21 @@ def control():
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
             if udp.message[4] == 2:
-                desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue), -1.0, 1.0)
-                desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue), -1.0, 1.0)
+                # Aggressive step response
+                desiredPos['x'] = 1.0
+                desiredPos['y'] = 1.0
+                # Slung load control staying at 0,0 (normal with filter)
+                #desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue), -1.0, 1.0)
+                #desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue), -1.0, 1.0)
+                # Slung load control staying at 0,0 (normal with no filter)
+                #desiredPos['x'] = limit(sl_xPIDvalue, -1.0, 1.0)
+                #desiredPos['y'] = limit(sl_yPIDvalue, -1.0, 1.0)
+                # Slung load control aggressive step response
+                #desiredPos['x'] = 1.0 + limit(f_desx.update(sl_xPIDvalue), -2.0, 2.0)
+                #desiredPos['y'] = 1.0 + limit(f_desy.update(sl_yPIDvalue), -2.0, 2.0)
+                # Slung load control aggressive step response (no filter)
+                #desiredPos['x'] = 1.0 + limit(sl_xPIDvalue, -2.0, 2.0)
+                #desiredPos['y'] = 1.0 + limit(sl_yPIDvalue, -2.0, 2.0)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
