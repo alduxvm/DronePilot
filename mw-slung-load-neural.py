@@ -81,6 +81,10 @@ vel_x = velocity(20,update_rate)
 vel_y = velocity(20,update_rate)
 vel_z = velocity(20,update_rate)
 
+# Way-point configuration
+wp_time = 1000 # 10 seconds hold at each way-point
+wp = [ (0,0), (1,1), (0,0), (-1,-1), (0,-1), (0,0) ]
+
 # Function to update commands and attitude to be called by a thread
 def control():
     global vehicle, rcCMD
@@ -165,10 +169,12 @@ def control():
             if udp.message[4] == 1:  
                 desiredPos['x'] = 0.0
                 desiredPos['y'] = 0.0
+                wp_index = 0
+                wp_step = 0
             if udp.message[4] == 2:
                 # Aggressive step response
-                desiredPos['x'] = 1.0
-                desiredPos['y'] = 1.0
+                #desiredPos['x'] = 1.0
+                #desiredPos['y'] = 1.0
                 # Slung load control staying at 0,0 (normal with filter)
                 #desiredPos['x'] = limit(f_desx.update(sl_xPIDvalue), -1.0, 1.0)
                 #desiredPos['y'] = limit(f_desy.update(sl_yPIDvalue), -1.0, 1.0)
@@ -181,6 +187,16 @@ def control():
                 # Slung load control aggressive step response (no filter)
                 #desiredPos['x'] = 1.0 + limit(sl_xPIDvalue, -2.0, 2.0)
                 #desiredPos['y'] = 1.0 + limit(sl_yPIDvalue, -2.0, 2.0)
+                # Way-point control
+                if wp_step >= wp_time:
+                    wp_step = 0
+                    wp_index += 1 # to iterate on the WP list
+                    if wp_index > len(wp)-1:
+                        wp_index = 0
+                else:
+                    desiredPos['x'] = wp[wp_index][0]
+                    desiredPos['y'] = wp[wp_index][1]
+                    wp_step += 1 # increase the time step to let time pass
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
@@ -199,26 +215,26 @@ def control():
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
-            if udp.message[4] == 2:
-                desiredThrottle = round((desiredThrottle / kt_sl) + u0, 0)
-            else:
-                desiredThrottle = round((desiredThrottle / kt) + u0, 0)
+            #if udp.message[4] == 2:
+            desiredThrottle = round((desiredThrottle / kt_sl) + u0, 0)
+            #else:
+            #    desiredThrottle = round((desiredThrottle / kt) + u0, 0)
             desiredYaw = round(1500 - (yPIDvalue * ky), 0)
 
             # Limit commands for safety
             if udp.message[4] == 1:
-                rcCMD[0] = limit(desiredRoll,1200,1800)
-                rcCMD[1] = limit(desiredPitch,1200,1800)
+                rcCMD[0] = limit(desiredRoll,1000,2000)
+                rcCMD[1] = limit(desiredPitch,1000,2000)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 slx_posPID.resetIntegrator()
                 sly_posPID.resetIntegrator()
                 mode = 'Auto'
             elif udp.message[4] == 2:
-                #rcCMD[0] = limit(desiredRoll,1200,1800)
-                #rcCMD[1] = limit(desiredPitch,1200,1800)
-                #rcCMD[2] = limit(desiredYaw,1000,2000)
-                #rcCMD[3] = limit(desiredThrottle,1000,2000)
+                rcCMD[0] = limit(desiredRoll,1000,2000)
+                rcCMD[1] = limit(desiredPitch,1000,2000)
+                rcCMD[2] = limit(desiredYaw,1000,2000)
+                rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'SlungLoad'
             else:
                 # Prevent integrators/derivators to increase if they are not in use
@@ -262,7 +278,7 @@ def control():
             if mode == 'Auto':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | SL_X: %0.3f | SL_Y: %0.3f" % (mode, sl_currentPos['x'], sl_currentPos['y'])                
+                print "Mode: %s | WP: %d | SL_X: %0.3f | SL_Y: %0.3f" % (mode, wp_index, sl_currentPos['x'], sl_currentPos['y'])                
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
