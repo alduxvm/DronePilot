@@ -31,7 +31,7 @@ ky = 500 / pi # Yaw controller gain
 
 # Trajectory configuration
 trajectory = 'circle'
-w = (2*pi)/15 # It will take 6 seconds to complete a circle
+w = (2*pi)/10 # It will take 6 seconds to complete a circle
 # For Circle
 radius = 0.8 # Circle radius
 # Infinity trajectory configuration
@@ -165,22 +165,25 @@ def control():
                 trajectory_step = 0.0
                 trajectory['x'], trajectory['y'] = 0,0
             if udp.message[4] == 2:
-                desiredPos['x'] = limit(sl_xPIDvalue, -2.0, 2.0)
-                desiredPos['y'] = limit(sl_yPIDvalue, -2.0, 2.0)
-                trajectory['x'], trajectory['y'] = circle_trajectory(radius, w, trajectory_step)
-                trajectory_step += update_rate
+                if trajectory == 'circle':
+                    desiredPos['x'], desiredPos['y'] = circle_trajectory(radius, w, trajectory_step)
+                    trajectory_step += update_rate
+                elif trajectory == 'infinity':
+                    desiredPos['x'], desiredPos['y'] = infinity_trajectory(a, b, w, trajectory_step)
+                    trajectory_step += update_rate
+                # Slung load control (with filter)
+                #desiredPos['x'] = desiredPos['x'] + limit(f_desx.update(sl_xPIDvalue), -2.0, 2.0)
+                #desiredPos['y'] = desiredPos['y'] + limit(f_desy.update(sl_yPIDvalue), -2.0, 2.0)
+                # Slung load control (no filter)
+                #desiredPos['x'] = desiredPos['x'] + limit(sl_xPIDvalue, -2.0, 2.0)
+                #desiredPos['y'] = desiredPos['y'] + limit(sl_yPIDvalue, -2.0, 2.0)
 
             # Filter new values before using them
             heading = f_yaw.update(udp.message[12])
 
             # PID updating, Roll is for Y and Pitch for X, Z is negative
-            if udp.message[4] == 1:
-                rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
-                pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
-            if udp.message[4] == 2:
-                rPIDvalue = rollPID.update(  trajectory['y'] + desiredPos['y'] - currentPos['y'] )
-                pPIDvalue = pitchPID.update( trajectory['x'] + desiredPos['x'] - currentPos['x'] )
-
+            rPIDvalue = rollPID.update(  desiredPos['y'] - currentPos['y'])
+            pPIDvalue = pitchPID.update( desiredPos['x'] - currentPos['x'])
             hPIDvalue = heightPID.update(desiredPos['z'] - currentPos['z'])
             yPIDvalue = yawPID.update(0.0 - heading)
             
