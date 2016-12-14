@@ -83,7 +83,7 @@ vel_z = velocity(20,update_rate)
 
 # Way-point configuration
 wp_time = 1000 # 10 seconds hold at each way-point
-wp = [ (0,0), (1,1), (0,0), (-1,-1), (0,-1), (0,0) ]
+wp = [ (0,0), (1,1), (0,0), (-1,-1), (0,0) ]
 
 # Function to update commands and attitude to be called by a thread
 def control():
@@ -99,8 +99,7 @@ def control():
     # Start Neural network
     print "Starting neural network..."
     #net = prn.loadNN('modules/sl_rtrl_best.csv')
-    net = prn.loadNN('modules/sl_rtrl_500.csv')
-    #net = prn.loadNN('modules/sl_bptt_500.csv')
+    net = prn.loadNN('modules/networks/sl_rtrl_step_control.csv')
     # Array of inputs to network 
     inputs = np.zeros((10,1))
     print "Neural network active!"

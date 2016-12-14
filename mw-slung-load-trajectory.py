@@ -8,7 +8,7 @@ __author__ = "Aldo Vargas"
 __copyright__ = "Copyright 2016 Altax.net"
 
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.1"
 __maintainer__ = "Aldo Vargas"
 __email__ = "alduxvm@gmail.com"
 __status__ = "Development"
@@ -192,24 +192,24 @@ def control():
             desiredRoll  = toPWM(degrees( (rPIDvalue * cosYaw + pPIDvalue * sinYaw) * (1 / g) ),1)
             desiredPitch = toPWM(degrees( (pPIDvalue * cosYaw - rPIDvalue * sinYaw) * (1 / g) ),1)
             desiredThrottle = ((hPIDvalue + g) * vehicle_weight) / (cos(f_pitch.update(radians(vehicle.attitude['angx'])))*cos(f_roll.update(radians(vehicle.attitude['angy']))))
-            if udp.message[4] == 2:
-                desiredThrottle = round((desiredThrottle / kt_sl) + u0, 0)
-            else:
-                desiredThrottle = round((desiredThrottle / kt) + u0, 0)
+            #if udp.message[4] == 2:
+            desiredThrottle = round((desiredThrottle / kt_sl) + u0, 0)
+            #else:
+            #    desiredThrottle = round((desiredThrottle / kt) + u0, 0)
             desiredYaw = round(1500 - (yPIDvalue * ky), 0)
 
             # Limit commands for safety
             if udp.message[4] == 1:
-                rcCMD[0] = limit(desiredRoll,1200,1800)
-                rcCMD[1] = limit(desiredPitch,1200,1800)
+                rcCMD[0] = limit(desiredRoll,1000,2000)
+                rcCMD[1] = limit(desiredPitch,1000,2000)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 slx_posPID.resetIntegrator()
                 sly_posPID.resetIntegrator()
                 mode = 'Auto'
             elif udp.message[4] == 2:
-                rcCMD[0] = limit(desiredRoll,1200,1800)
-                rcCMD[1] = limit(desiredPitch,1200,1800)
+                rcCMD[0] = limit(desiredRoll,1000,2000)
+                rcCMD[1] = limit(desiredPitch,1000,2000)
                 rcCMD[2] = limit(desiredYaw,1000,2000)
                 rcCMD[3] = limit(desiredThrottle,1000,2000)
                 mode = 'SlungLoad'

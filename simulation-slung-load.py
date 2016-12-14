@@ -22,7 +22,8 @@ import modules.pyrenn as prn
 
 # Load data
 #data = pd.read_csv('sim-data/sl-neural-bptt-500.csv',sep=',',header=0)
-data = pd.read_csv('modules/sim-data/sl-c-inf15-1.csv',sep=',',header=0)
+#data = pd.read_csv('modules/sim-data/sl-c-inf15-1.csv',sep=',',header=0)
+data = pd.read_csv('modules/sim-data/step-control-nofilter2.csv',sep=',',header=0)
 
 # Main configuration
 logging = True
@@ -101,8 +102,7 @@ def control():
     time.sleep(3)
 
     # Start Neural network
-    network = 'modules/networks/BPTT_slungload_test.csv'
-    #network = 'modules/networks/RTRL_slungload_test.csv'
+    network = 'modules/networks/sl_rtrl_step_control.csv'
 
     print "Starting \'%s\' neural network..." % (network)
     net = prn.loadNN(network)
