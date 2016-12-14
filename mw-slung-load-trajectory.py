@@ -42,10 +42,9 @@ b = 1.2
 vehicle = MultiWii("/dev/ttyUSB0")
 
 # Position coordinates [x, y, x] 
-desiredPos = {'x':0.0, 'y':0.0, 'z':1.6} # Set at the beginning (for now...)
+desiredPos = {'x':0.0, 'y':0.0, 'z':1.8} # Set at the beginning (for now...)
 currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
 sl_currentPos = {'x':0.0, 'y':0.0, 'z':0.0} # It will be updated using UDP
-trajectory = {'x':0.0, 'y':0.0, 'z':0.0} # Trajectory that the vehicle will follow
 
 # Velocity
 velocities = {'x':0.0, 'y':0.0, 'z':0.0, 'fx':0.0, 'fy':0.0, 'fz':0.0}
@@ -91,7 +90,7 @@ vel_z = velocity(20,update_rate)
 def control():
     global vehicle, rcCMD
     global rollPID, pitchPID, heightPID, yawPID
-    global desiredPos, currentPos, velocities, trajectory
+    global desiredPos, currentPos, velocities
     global desiredRoll, desiredPitch, desiredThrottle
     global rPIDvalue, pPIDvalue, yPIDvalue
     global f_yaw, f_pitch, f_roll, f_desx, f_desy
@@ -116,8 +115,7 @@ def control():
             logger.writerow(('timestamp','Vroll','Vpitch','Vyaw','Proll','Ppitch','Pyaw','Pthrottle', \
                              'x','y','z','Dx','Dy','Dz','Mroll','Mpitch','Myaw','Mode','Croll','Cpitch','Cyaw','Cthrottle', \
                              'slx','sly','slz','slr','slp','sly', \
-                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz', \
-                             'tray_x', 'tray_y' ))
+                             'vel_x', 'vel_fx', 'vel_y', 'vel_fy', 'vel_z', 'vel_fz' ))
         while True:
             # Variable to time the loop
             current = time.time()
@@ -163,7 +161,6 @@ def control():
                 desiredPos['x'] = radius
                 desiredPos['y'] = 0.0
                 trajectory_step = 0.0
-                trajectory['x'], trajectory['y'] = 0,0
             if udp.message[4] == 2:
                 if trajectory == 'circle':
                     desiredPos['x'], desiredPos['y'] = circle_trajectory(radius, w, trajectory_step)
@@ -238,8 +235,7 @@ def control():
                     udp.message[4], \
                     rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3], \
                     udp.message[8], udp.message[9], udp.message[10], udp.message[14],udp.message[15], udp.message[16], \
-                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'], \
-                    trajectory['x'], trajectory['y'] )
+                    velocities['x'], velocities['fx'], velocities['y'], velocities['fy'], velocities['z'], velocities['fz'] )
 
             if logging:
                 logger.writerow(row)
@@ -249,7 +245,7 @@ def control():
             if mode == 'Auto':
                 print "Mode: %s | X: %0.3f | Y: %0.3f | Z: %0.3f" % (mode, currentPos['x'], currentPos['y'], currentPos['z'])
             elif mode == 'SlungLoad':
-                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" %  (mode, trajectory['x'], trajectory['y'])               
+                print "Mode: %s | Tray_X: %0.3f | Tray_Y: %0.3f" %  (mode, desiredPos['x'], desiredPos['y'])               
 
             # Wait until the update_rate is completed 
             while elapsed < update_rate:
