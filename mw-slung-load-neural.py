@@ -148,10 +148,6 @@ def control():
             currentPos['y'] = udp.message[6]
             currentPos['z'] = -udp.message[7]
 
-            # Update position of the slung load
-            sl_currentPos['x'] = udp.message[8]
-            sl_currentPos['y'] = udp.message[9]
-
             # Get velocities of the vehicle
             velocities['x'],velocities['fx'] = vel_x.get_velocity(currentPos['x'])
             velocities['y'],velocities['fy'] = vel_y.get_velocity(currentPos['y'])
@@ -159,6 +155,21 @@ def control():
 
             # Update vehicle Attitude 
             vehicle.getData(MultiWii.ATTITUDE)
+
+            # Neural network update
+            # Order of the inputs -> vehicle roll, vehicle pitch, vehicle yaw, x, y, z, roll, pitch, yaw, throttle
+            np.put(inputs, [0,1,2,3,4,5,6,7,8,9], \
+                [vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
+                 currentPos['x'], currentPos['y'], currentPos['z'], \
+                 rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3] ])
+            # Get output of neural network
+            outputs = prn.NNOut(inputs,net)
+
+            # Update position of the slung load
+            #sl_currentPos['x'] = udp.message[8]
+            #sl_currentPos['y'] = udp.message[9]
+            sl_currentPos['x'] = outputs[0,0]
+            sl_currentPos['y'] = outputs[1,0]
 
             # Slung load PID calculation, the relative position of the vehicle vs the slung load
             sl_xPIDvalue = slx_posPID.update(sl_currentPos['x'] - currentPos['x'])
@@ -245,15 +256,6 @@ def control():
                 sly_posPID.resetIntegrator()
                 mode = 'Manual'
             rcCMD = [limit(n,1000,2000) for n in rcCMD]
-
-            # Neural network update
-            # Order of the inputs -> vehicle roll, vehicle pitch, vehicle yaw, x, y, z, roll, pitch, yaw, throttle
-            np.put(inputs, [0,1,2,3,4,5,6,7,8,9], \
-                [vehicle.attitude['angx'], vehicle.attitude['angy'], vehicle.attitude['heading'], \
-                 currentPos['x'], currentPos['y'], currentPos['z'], \
-                 rcCMD[0], rcCMD[1], rcCMD[2], rcCMD[3] ])
-            # Get output of neural network
-            outputs = prn.NNOut(inputs,net)
 
             # Send commands to vehicle
             vehicle.sendCMD(8,MultiWii.SET_RAW_RC,rcCMD)
